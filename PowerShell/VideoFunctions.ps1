@@ -45,8 +45,7 @@ function Get-MkvTrack {
     mkvextract "$name.mkv" tracks $track`:"$outputName";
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "Failed ($LASTEXITCODE)" -ForegroundColor Red;
-        exit $LASTEXITCODE;
+        Write-Host "Failed (Exit code: $LASTEXITCODE)" -ForegroundColor Red;
     }
     else {
         Write-Host "Complete" -ForegroundColor Blue;
@@ -93,9 +92,6 @@ function Get-MkvTracks {
     foreach ($track in $tracks) {
         $finalExtension = "$track.$extension";
         Get-MkvTrack $name $track $finalExtension;
-        if ($LASTEXITCODE -ne 0) {
-            exit $LASTEXITCODE;
-        }
     }
 }
 
