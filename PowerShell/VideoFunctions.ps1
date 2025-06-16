@@ -141,7 +141,9 @@ function Get-MkvTrackAll {
     }
 }
 
-Remove-Variable -Name plexLayout -Force
+if (Get-Variable -Name plexLayout -ErrorAction SilentlyContinue) {
+    Remove-Variable -Name plexLayout -Force
+}
 $plexLayout = @{
     'Behind The Scenes' = 'behindthescenes'
     'Deleted Scenes'    = 'deleted'
@@ -181,18 +183,17 @@ function Add-PlexFolders {
     )
 
     if (-not (Test-Path -Path $destination)) {
-        Write-Host "Destination folder does not exist" -ForegroundColor Red;
-        exit 1;
+        throw "Destination folder does not exist";
     }
 
-    foreach ($folder in $plexLayout) {
+    foreach ($folder in $plexLayout.Keys) {
         $path = "$destination\$folder";
         if (-not (Test-Path -Path $path)) {
             New-Item -Path $path -ItemType Directory;
         }
     }
 
-    Write-Host '$plexLayout.Count folders created' -ForegroundColor Blue;
+    Write-Host "Plex folders created" -ForegroundColor Blue;
 }
 
 <#
@@ -222,27 +223,26 @@ function Move-PlexFiles {
     )
 
     if (-not (Test-Path -Path $destination)) {
-        Write-Host "Destination folder does not exist" -ForegroundColor Red;
-        exit 1;
+        throw "Destination folder does not exist";
     }
 
     $currentDir = (Get-Location).Path;
-    if ($currentDir.EndsWith("MP4")) {
-        Write-Host "Must be in MP4 directory" -ForegroundColor Red;
-        exit 1;
+    if (-not $currentDir.EndsWith("MP4")) {
+        throw "Must be in MP4 directory";
     }
 
-    $fileCount = 0;
     foreach ($folder in $plexLayout.Keys) {
         $fileSuffix = $plexLayout[$folder];
         $destFiles = "*-$fileSuffix*";
         $destFolder = "$destination\$folder";
         Write-Host "Moving -$fileSuffix to $destFolder";
-        $fileCount += (Get-ChildItem $destFiles).Count;
-        Move-Item "destFiles" "$destFolder";
+        Get-ChildItem $destFiles | ForEach-Object {
+            $fileCount++;
+            Move-Item $_.Name "$destFolder";
+        }
     }
 
-    Write-Host '$fileCount files moved to Plex folders' -ForegroundColor Blue;
+    Write-Host "$fileCount files moved to Plex folders" -ForegroundColor Blue;
 }
 
 <#
@@ -272,24 +272,21 @@ function Remove-PlexEmptyFolders {
     )
 
     if (-not (Test-Path -Path $destination)) {
-        Write-Host "Destination folder does not exist" -ForegroundColor Red;
-        exit 1;
+        throw "Destination folder does not exist";
     }
 
 
-    foreach ($folder in $plexLayout) {
+    $foldersDeleted = 0;
+    foreach ($folder in $plexLayout.Keys) {
         $path = "$destination\$folder";
 
         if (-not (Test-Path -Path $path)) {
-            return;
+            continue;
         }
 
-        $foldersDeleted = 0;
-        $filesToDelete = "$path\*";
-        $fileCount = (Get-ChildItem $filesToDelete).Count;
-        if ($fileCount -ne 0) {
+        if ((Get-ChildItem $path).Count -eq 0) {
             $foldersDeleted++;
-            Remove-Item -Path $filesToDelete;
+            Remove-Item -Path $path;
         }
     }
 
@@ -309,10 +306,10 @@ function Remove-PlexEmptyFolders {
 .EXAMPLE
     Invoke-PlexFileOperations 'C:\plex\movies\My Movie'
 
-    Executes the following commands
-    Add-PlexFolders $Destination
-    Move-PlexFiles $Destination
-    Remove-PlexEmptyFolders $Destination
+    Executes the following commands:
+    - Add-PlexFolders $Destination
+    - Move-PlexFiles $Destination
+    - Remove-PlexEmptyFolders $Destination
 
 .INPUTS
     [string]
@@ -325,23 +322,18 @@ function Invoke-PlexFileOperations {
 
     Write-Host "Organizing files in to Plex directory $destination" -ForegroundColor Green;
 
-    if (-not (Test-Path -Path $destination)) {
-        Write-Host "Destination folder does not exist" -ForegroundColor Red;
-        exit 1;
-    }
+    try {
+        if (-not (Test-Path -Path $destination)) {
+            throw "Destination folder does not exist";
+        }
 
-    Add-PlexFolders $destination;
-    if ($LASTEXITCODE -ne 0) {
-        exit $LASTEXITCODE;
+        Add-PlexFolders $destination;
+        Move-PlexFiles $destination;   
+        Remove-PlexEmptyFolders $destination;
+        return;
     }
-   
-    Move-PlexFiles $destination;
-    if ($LASTEXITCODE -ne 0) {
-        exit $LASTEXITCODE;
-    }
-   
-    Remove-PlexEmptyFolders $destination;
-    if ($LASTEXITCODE -ne 0) {
-        exit $LASTEXITCODE;
+    catch {
+        Write-Host $_ -ForegroundColor Red;
+        return;
     }
 }
