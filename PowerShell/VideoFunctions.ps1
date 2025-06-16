@@ -101,7 +101,7 @@ function Get-MkvTracks {
 
 <#
 .SYNOPSIS
-    Extracts an audio or subtitle track from multiplle files.
+    Extracts an audio or subtitle track from multiple files.
 
 .DESCRIPTION
     This function takes list of MKV filse, a track number and extracts them appending the specified extension.
