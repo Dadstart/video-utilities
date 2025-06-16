@@ -141,6 +141,7 @@ function Get-MkvTrackAll {
     }
 }
 
+Remove-Variable -Name plexLayout -Force
 $plexLayout = @{
     'Behind The Scenes' = 'behindthescenes'
     'Deleted Scenes'    = 'deleted'
