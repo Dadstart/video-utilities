@@ -284,8 +284,6 @@ function Remove-PlexEmptyFolders {
             continue;
         }
 
-#        Write-Host $path;
-#        Write-Host (Get-ChildItem $path).Count;
         if ((Get-ChildItem $path).Count -eq 0) {
             $foldersDeleted++;
             Remove-Item -Path $path;
