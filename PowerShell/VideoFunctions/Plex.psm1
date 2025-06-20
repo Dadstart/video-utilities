@@ -79,18 +79,13 @@ function Move-PlexFiles {
         throw "Destination folder does not exist";
     }
 
-    $currentDir = (Get-Location).Path;
-    if (-not $currentDir.EndsWith("MP4")) {
-        throw "Must be in MP4 directory";
-    }
-
     foreach ($folder in $plexLayout.Keys) {
         $fileSuffix = $plexLayout[$folder];
-        $destFiles = "*-$fileSuffix*";
+        $destFiles = (Get-ChildItem "*-$fileSuffix.mp4") + (Get-ChildItem "*-$fileSuffix.srt");
         $destFolder = "$destination\$folder";
         Write-Host "Moving -$fileSuffix to $destFolder";
-        Get-ChildItem $destFiles | ForEach-Object {
-            Move-Item $_.Name "$destFolder";
+        foreach ($destFile in $destFiles) {
+            Move-Item $destFile.Name "$destFolder";
         }
     }
 
