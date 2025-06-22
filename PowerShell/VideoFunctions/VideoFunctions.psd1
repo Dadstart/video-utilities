@@ -66,12 +66,38 @@ ScriptsToProcess = @('Main')
 # FormatsToProcess = @()
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-NestedModules = @('Mkv.psm1', 'Plex.psm1')
+NestedModules = @(
+    'FFMpeg.psm1',
+    'Mkv.psm1',
+    'Mpeg.psm1',
+    'Plex.psm1',
+    'Utilities.psm1'
+)
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Get-MkvTrack', 'Get-MkvTracks', 'Get-MkvTrackAll', 'Add-PlexFolders', 
-               'Move-PlexFiles', 'Remove-PlexEmptyFolders', 
-               'Invoke-PlexFileOperations', 'Get-FfmpegVersion'
+FunctionsToExport = @(
+    # FFMpeg
+    'Get-FFMpegVersion',
+    'Invoke-FFProbe',
+
+    # Mkv
+    'Get-MkvTrack',
+    'Get-MkvTracks',
+    'Get-MkvTrackAll',
+
+    # Mpeg
+    'Get-MpegStreams'
+
+    # Plex
+    'Add-PlexFolders', 
+    'Move-PlexFiles',
+    'Remove-PlexEmptyFolders', 
+    'Invoke-PlexFileOperations',
+
+    # Utilities
+    'Get-FileFromPath',
+    'Invoke-Process'
+)
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
