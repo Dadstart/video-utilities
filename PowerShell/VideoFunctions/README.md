@@ -17,48 +17,14 @@ A PowerShell module for video file processing and Plex folder management. This m
 - FFmpeg (for FFmpeg-related functions)
 - MKVToolNix (for MKV processing functions)
 
-### Quick Installation
+### Easiest No-Fuss Install
+Run the quick install script `QuickInstall.ps1`. This removes any existing installation and installs the current version.
 
-1. Clone or download this repository
-2. Navigate to the `VideoFunctions` directory
-3. Run the installation script:
+### Install
+Run the install script `Install.ps1`
 
-```powershell
-# Install for current user (recommended)
-.\Install-VideoFunctions.ps1
-
-# Install for all users (requires elevation)
-.\Install-VideoFunctions.ps1 -Scope AllUsers
-
-# Force installation (overwrites existing)
-.\Install-VideoFunctions.ps1 -Force
-```
-
-### Manual Installation
-
-1. Copy the `VideoFunctions` folder to your PowerShell modules directory:
-   - **Windows**: `$env:USERPROFILE\Documents\WindowsPowerShell\Modules\`
-   - **PowerShell Core**: `$env:USERPROFILE\Documents\PowerShell\Modules\`
-
-2. Import the module:
-   ```powershell
-   Import-Module VideoFunctions
-   ```
-
-### Uninstallation
-
-To remove the module from your system:
-
-```powershell
-# Uninstall from all locations
-.\Uninstall-VideoFunctions.ps1
-
-# Uninstall from current user only
-.\Uninstall-VideoFunctions.ps1 -Scope CurrentUser
-
-# Uninstall from all users only (requires elevation)
-.\Uninstall-VideoFunctions.ps1 -Scope AllUsers
-```
+### Uninstall
+Run the uninstall script `Uinstall.ps1`
 
 ## Module Structure
 
@@ -68,8 +34,9 @@ The module follows PowerShell best practices with organized function structure:
 VideoFunctions/
 ├── VideoFunctions.psd1          # Module manifest
 ├── VideoFunctions.psm1          # Root module file
-├── Install-VideoFunctions.ps1   # Installation script
-├── Uninstall-VideoFunctions.ps1 # Uninstallation script
+├── Install.ps1                  # Install script
+├── QuickInstall.ps1             # Quick install script
+├── Uninstall.ps1                # Uninstall script
 ├── Public/                      # Public functions (exported)
 │   ├── Get-FFMpegVersion.ps1
 │   ├── Invoke-FFProbe.ps1
