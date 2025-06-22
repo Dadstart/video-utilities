@@ -86,7 +86,7 @@ FunctionsToExport = @(
     'Get-MkvTrackAll',
 
     # Mpeg
-    'Get-MpegTrack',
+    'Get-MpegStreams'
 
     # Plex
     'Add-PlexFolders', 
