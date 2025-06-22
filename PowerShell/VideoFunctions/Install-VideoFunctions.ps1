@@ -1,20 +1,4 @@
 #!/usr/bin/env pwsh
-
-# Define enums for parameter validation
-enum InstallScope {
-    CurrentUser
-    AllUsers
-}
-
-enum VerbosityLevel {
-    Silent
-    Error
-    Warning
-    Info
-    Success
-    All
-}
-
 <#
 .SYNOPSIS
     Installs the VideoFunctions PowerShell module.
@@ -30,12 +14,6 @@ enum VerbosityLevel {
 
 .PARAMETER Force
     Forces the installation even if the module already exists.
-
-.PARAMETER Verbosity
-    Controls the level of messages displayed. Valid values are 'Silent', 'Error', 'Warning', 'Info', 'Success', and 'All'.
-    Default is 'All'. 'Silent' suppresses all messages except errors, 'Error' shows only errors,
-    'Warning' shows warnings and errors, 'Info' shows info, warnings, and errors, 'Success' shows all except debug,
-    and 'All' shows all message types.
 
 .PARAMETER WhatIf
     Shows what would happen if the script runs without actually performing the installation.
@@ -63,16 +41,6 @@ enum VerbosityLevel {
 
     Shows what would happen without actually installing.
 
-.EXAMPLE
-    .\Install-VideoFunctions.ps1 -Verbosity Silent
-
-    Installs the module with minimal output (errors only).
-
-.EXAMPLE
-    .\Install-VideoFunctions.ps1 -Verbosity Warning
-
-    Installs the module showing only warnings and errors.
-
 .NOTES
     This script should be run from the directory containing the VideoFunctions module.
     For AllUsers installation, the script must be run with administrative privileges.
@@ -81,41 +49,21 @@ enum VerbosityLevel {
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $false)]
-    [InstallScope]$Scope = [InstallScope]::CurrentUser,
+    [ValidateSet('CurrentUser', 'AllUsers')]
+    [string]$Scope = 'CurrentUser',
     
     [Parameter(Mandatory = $false)]
-    [switch]$Force,
-    
-    [Parameter(Mandatory = $false)]
-    [VerbosityLevel]$Verbosity = [VerbosityLevel]::All
+    [switch]$Force
 )
 
 # Set strict error handling
 $ErrorActionPreference = 'Stop'
-
-# Global verbosity setting
-$script:VerbosityLevel = $Verbosity
 
 function Write-InstallMessage {
     param(
         [string]$Message,
         [string]$Type = 'Info'
     )
-    
-    # Check if message should be displayed based on verbosity level
-    $shouldDisplay = switch ($script:VerbosityLevel) {
-        'Silent'   { $Type -eq 'Error' }
-        'Error'    { $Type -in @('Error') }
-        'Warning'  { $Type -in @('Error', 'Warning') }
-        'Info'     { $Type -in @('Error', 'Warning', 'Info') }
-        'Success'  { $Type -in @('Error', 'Warning', 'Info', 'Success') }
-        'All'      { $true }
-        default    { $true }
-    }
-    
-    if (-not $shouldDisplay) {
-        return
-    }
     
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     switch ($Type) {
@@ -214,10 +162,10 @@ function Get-ModuleVersion {
 
 # Main installation logic
 try {
-    Write-InstallMessage "Starting VideoFunctions module installation..." 'Info'
-    Write-InstallMessage "PowerShell Version: $($PSVersionTable.PSVersion)" 'Info'
-    Write-InstallMessage "PowerShell Edition: $($PSVersionTable.PSEdition)" 'Info'
-    Write-InstallMessage "Installation Scope: $Scope" 'Info'
+    Write-InstallMessage "Starting VideoFunctions module installation..."
+    Write-InstallMessage "PowerShell Version: $($PSVersionTable.PSVersion)"
+    Write-InstallMessage "PowerShell Edition: $($PSVersionTable.PSEdition)"
+    Write-InstallMessage "Installation Scope: $Scope"
     
     # Check if running from the correct directory
     if (-not (Test-ModuleStructure)) {
@@ -233,7 +181,7 @@ try {
     $installPath = Get-ModuleInstallPath -Scope $Scope
     $modulePath = Join-Path $installPath 'VideoFunctions'
     
-    Write-InstallMessage "Installation path: $modulePath" 'Info'
+    Write-InstallMessage "Installation path: $modulePath"
     
     # Check if module already exists
     if (Test-Path $modulePath) {
@@ -246,7 +194,7 @@ try {
     
     # Get current module version
     $moduleVersion = Get-ModuleVersion
-    Write-InstallMessage "Installing VideoFunctions version $moduleVersion" 'Info'
+    Write-InstallMessage "Installing VideoFunctions version $moduleVersion"
     
     # Perform the installation
     if ($PSCmdlet.ShouldProcess($modulePath, "Install VideoFunctions module")) {
@@ -272,9 +220,9 @@ try {
                 Write-InstallMessage "Module imported successfully. Found $($importedFunctions.Count) functions." 'Success'
                 
                 # Show available functions
-                Write-InstallMessage "Available functions:" 'Info'
+                Write-InstallMessage "Available functions:"
                 foreach ($function in $importedFunctions) {
-                    Write-InstallMessage "  - $($function.Name)" 'Info'
+                    Write-Host "  - $($function.Name)" -ForegroundColor White
                 }
                 
                 # Remove the module to clean up
@@ -295,9 +243,9 @@ try {
     
     # Show usage examples
     Write-InstallMessage "Example usage:" 'Info'
-    Write-InstallMessage "  Import-Module VideoFunctions" 'Info'
-    Write-InstallMessage "  Get-Command -Module VideoFunctions" 'Info'
-    Write-InstallMessage "  Get-Help Get-FFMpegVersion" 'Info'
+    Write-Host "  Import-Module VideoFunctions" -ForegroundColor White
+    Write-Host "  Get-Command -Module VideoFunctions" -ForegroundColor White
+    Write-Host "  Get-Help Get-FFMpegVersion" -ForegroundColor White
     
 } catch {
     Write-InstallMessage "Installation failed: $($_.Exception.Message)" 'Error'

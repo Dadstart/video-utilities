@@ -1,21 +1,4 @@
 #!/usr/bin/env pwsh
-
-# Define enums for parameter validation
-enum UninstallScope {
-    CurrentUser
-    AllUsers
-    All
-}
-
-enum VerbosityLevel {
-    Silent
-    Error
-    Warning
-    Info
-    Success
-    All
-}
-
 <#
 .SYNOPSIS
     Uninstalls the VideoFunctions PowerShell module.
@@ -32,12 +15,6 @@ enum VerbosityLevel {
 .PARAMETER Force
     Forces the uninstallation without prompting for confirmation.
     When specified, this parameter bypasses all confirmation prompts.
-
-.PARAMETER Verbosity
-    Controls the level of messages displayed. Valid values are 'Silent', 'Error', 'Warning', 'Info', 'Success', and 'All'.
-    Default is 'All'. 'Silent' suppresses all messages except errors, 'Error' shows only errors,
-    'Warning' shows warnings and errors, 'Info' shows info, warnings, and errors, 'Success' shows all except debug,
-    and 'All' shows all message types.
 
 .PARAMETER WhatIf
     Shows what would happen if the script runs without actually performing the uninstallation.
@@ -72,16 +49,6 @@ enum VerbosityLevel {
 
     Shows what would happen without actually uninstalling.
 
-.EXAMPLE
-    .\Uninstall-VideoFunctions.ps1 -Verbosity Silent
-
-    Uninstalls the module with minimal output (errors only).
-
-.EXAMPLE
-    .\Uninstall-VideoFunctions.ps1 -Verbosity Warning
-
-    Uninstalls the module showing only warnings and errors.
-
 .NOTES
     This script can be run from any directory.
     For AllUsers uninstallation, the script must be run with administrative privileges.
@@ -90,41 +57,21 @@ enum VerbosityLevel {
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
     [Parameter(Mandatory = $false)]
-    [UninstallScope]$Scope = [UninstallScope]::All,
+    [ValidateSet('CurrentUser', 'AllUsers', 'All')]
+    [string]$Scope = 'All',
     
     [Parameter(Mandatory = $false)]
-    [switch]$Force,
-    
-    [Parameter(Mandatory = $false)]
-    [VerbosityLevel]$Verbosity = [VerbosityLevel]::All
+    [switch]$Force
 )
 
 # Set strict error handling
 $ErrorActionPreference = 'Stop'
-
-# Global verbosity setting
-$script:VerbosityLevel = $Verbosity
 
 function Write-UninstallMessage {
     param(
         [string]$Message,
         [string]$Type = 'Info'
     )
-    
-    # Check if message should be displayed based on verbosity level
-    $shouldDisplay = switch ($script:VerbosityLevel) {
-        'Silent'   { $Type -eq 'Error' }
-        'Error'    { $Type -in @('Error') }
-        'Warning'  { $Type -in @('Error', 'Warning') }
-        'Info'     { $Type -in @('Error', 'Warning', 'Info') }
-        'Success'  { $Type -in @('Error', 'Warning', 'Info', 'Success') }
-        'All'      { $true }
-        default    { $true }
-    }
-    
-    if (-not $shouldDisplay) {
-        return
-    }
     
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH-mm-ss'
     switch ($Type) {
@@ -219,10 +166,10 @@ function Get-ModuleInfo {
 
 # Main uninstallation logic
 try {
-    Write-UninstallMessage "Starting VideoFunctions module uninstallation..." 'Info'
-    Write-UninstallMessage "PowerShell Version: $($PSVersionTable.PSVersion)" 'Info'
-    Write-UninstallMessage "PowerShell Edition: $($PSVersionTable.PSEdition)" 'Info'
-    Write-UninstallMessage "Uninstallation Scope: $Scope" 'Info'
+    Write-UninstallMessage "Starting VideoFunctions module uninstallation..."
+    Write-UninstallMessage "PowerShell Version: $($PSVersionTable.PSVersion)"
+    Write-UninstallMessage "PowerShell Edition: $($PSVersionTable.PSEdition)"
+    Write-UninstallMessage "Uninstallation Scope: $Scope"
     
     # Check for administrative privileges if needed
     if ($Scope -eq 'AllUsers' -and -not (Test-Administrator)) {
@@ -237,10 +184,10 @@ try {
         return
     }
     
-    Write-UninstallMessage "Found VideoFunctions module in $($installedPaths.Count) location(s):" 'Info'
+    Write-UninstallMessage "Found VideoFunctions module in $($installedPaths.Count) location(s):"
     foreach ($path in $installedPaths) {
         $moduleInfo = Get-ModuleInfo -ModulePath $path
-        Write-UninstallMessage "  - $path (Version: $($moduleInfo.Version))" 'Info'
+        Write-Host "  - $path (Version: $($moduleInfo.Version))" -ForegroundColor White
     }
     
     # Check if module is currently loaded
@@ -271,7 +218,7 @@ try {
         
         if ($shouldProceed) {
             try {
-                Write-UninstallMessage "Removing module from: $path" 'Info'
+                Write-UninstallMessage "Removing module from: $path"
                 
                 # Get module info before removal
                 $moduleInfo = Get-ModuleInfo -ModulePath $path
@@ -295,9 +242,9 @@ try {
         Write-UninstallMessage "VideoFunctions module has been completely removed from the system." 'Info'
     } else {
         Write-UninstallMessage "Uninstallation completed with warnings." 'Warning'
-        Write-UninstallMessage "Remaining module locations:" 'Warning'
+        Write-UninstallMessage "Remaining module locations:"
         foreach ($path in $remainingPaths) {
-            Write-UninstallMessage "  - $path" 'Warning'
+            Write-Host "  - $path" -ForegroundColor Yellow
         }
     }
     
