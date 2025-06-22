@@ -1,19 +1,11 @@
 #!/usr/bin/env pwsh
 
-# Define enums for parameter validation
-enum ReinstallScope {
-    CurrentUser
-    AllUsers
-    All
-}
-
-enum VerbosityLevel {
-    Silent
-    Error
-    Warning
-    Info
-    Success
-    All
+# Import shared installation helpers
+$helpersPath = Join-Path $PSScriptRoot 'Private\InstallationHelpers.ps1'
+if (Test-Path $helpersPath) {
+    . $helpersPath
+} else {
+    throw "InstallationHelpers.ps1 not found at: $helpersPath"
 }
 
 <#
@@ -110,143 +102,16 @@ param(
 # Set strict error handling
 $ErrorActionPreference = 'Stop'
 
-# Global verbosity setting
-$script:VerbosityLevel = $Verbosity
-
-function Write-ReinstallMessage {
-    param(
-        [string]$Message,
-        [string]$Type = 'Info'
-    )
-    
-    # Check if message should be displayed based on verbosity level
-    $shouldDisplay = switch ($script:VerbosityLevel) {
-        'Silent'   { $Type -eq 'Error' }
-        'Error'    { $Type -in @('Error') }
-        'Warning'  { $Type -in @('Error', 'Warning') }
-        'Info'     { $Type -in @('Error', 'Warning', 'Info') }
-        'Success'  { $Type -in @('Error', 'Warning', 'Info', 'Success') }
-        'All'      { $true }
-        default    { $true }
-    }
-    
-    if (-not $shouldDisplay) {
-        return
-    }
-    
-    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    switch ($Type) {
-        'Info'    { Write-Host "[$timestamp] INFO: $Message" -ForegroundColor Cyan }
-        'Success' { Write-Host "[$timestamp] SUCCESS: $Message" -ForegroundColor Green }
-        'Warning' { Write-Host "[$timestamp] WARNING: $Message" -ForegroundColor Yellow }
-        'Error'   { Write-Host "[$timestamp] ERROR: $Message" -ForegroundColor Red }
-    }
-}
-
-function Test-Administrator {
-    <#
-    .SYNOPSIS
-        Tests if the current session is running with administrative privileges.
-    #>
-    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
-
-function Find-VideoFunctionsDirectory {
-    <#
-    .SYNOPSIS
-        Finds the VideoFunctions module directory by searching common locations.
-    #>
-    $searchPaths = @(
-        $PSScriptRoot,
-        (Split-Path $PSScriptRoot -Parent),
-        (Get-Location).Path,
-        "$env:USERPROFILE\Documents\PowerShell\Modules\VideoFunctions",
-        "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\VideoFunctions",
-        "$env:ProgramFiles\PowerShell\Modules\VideoFunctions",
-        "$env:ProgramFiles\WindowsPowerShell\Modules\VideoFunctions"
-    )
-    
-    foreach ($path in $searchPaths) {
-        if (Test-Path (Join-Path $path 'VideoFunctions.psd1')) {
-            return $path
-        }
-    }
-    
-    return $null
-}
-
-function Build-UninstallParameters {
-    <#
-    .SYNOPSIS
-        Builds the parameter hashtable for the uninstall script.
-    #>
-    $params = @{}
-    
-    if ($Scope -ne 'All') {
-        $params['Scope'] = $Scope
-    }
-    
-    if ($Force) {
-        $params['Force'] = $true
-    }
-    
-    if ($Verbosity -ne 'All') {
-        $params['Verbosity'] = $Verbosity
-    }
-    
-    if ($WhatIfPreference) {
-        $params['WhatIf'] = $true
-    }
-    
-    if ($ConfirmPreference -eq 'None') {
-        $params['Confirm'] = $false
-    }
-    
-    return $params
-}
-
-function Build-InstallParameters {
-    <#
-    .SYNOPSIS
-        Builds the parameter hashtable for the install script.
-    #>
-    $params = @{}
-    
-    # For install, use CurrentUser if Scope is All, otherwise use the specified scope
-    $installScope = if ($Scope -eq 'All') { 'CurrentUser' } else { $Scope }
-    $params['Scope'] = $installScope
-    
-    if ($Force) {
-        $params['Force'] = $true
-    }
-    
-    if ($Verbosity -ne 'All') {
-        $params['Verbosity'] = $Verbosity
-    }
-    
-    if ($WhatIfPreference) {
-        $params['WhatIf'] = $true
-    }
-    
-    if ($ConfirmPreference -eq 'None') {
-        $params['Confirm'] = $false
-    }
-    
-    return $params
-}
-
 # Main reinstallation logic
 try {
-    Write-ReinstallMessage "Starting VideoFunctions module reinstallation..." 'Info'
-    Write-ReinstallMessage "PowerShell Version: $($PSVersionTable.PSVersion)" 'Info'
-    Write-ReinstallMessage "PowerShell Edition: $($PSVersionTable.PSEdition)" 'Info'
-    Write-ReinstallMessage "Reinstallation Scope: $Scope" 'Info'
+    Write-InstallationMessage "Starting VideoFunctions module reinstallation..." 'Info' $Verbosity
+    Write-InstallationMessage "PowerShell Version: $($PSVersionTable.PSVersion)" 'Info' $Verbosity
+    Write-InstallationMessage "PowerShell Edition: $($PSVersionTable.PSEdition)" 'Info' $Verbosity
+    Write-InstallationMessage "Reinstallation Scope: $Scope" 'Info' $Verbosity
     
     # Save current directory
     $originalDirectory = Get-Location
-    Write-ReinstallMessage "Original directory: $originalDirectory" 'Info'
+    Write-InstallationMessage "Original directory: $originalDirectory" 'Info' $Verbosity
     
     # Check for administrative privileges if needed
     if ($Scope -eq 'AllUsers' -and -not (Test-Administrator)) {
@@ -259,18 +124,18 @@ try {
         throw "VideoFunctions module directory not found. Please ensure this script is run from or near the VideoFunctions module directory."
     }
     
-    Write-ReinstallMessage "Found VideoFunctions directory: $videoFunctionsDir" 'Info'
+    Write-InstallationMessage "Found VideoFunctions directory: $videoFunctionsDir" 'Info' $Verbosity
     
     # Navigate to VideoFunctions directory
-    Write-ReinstallMessage "Navigating to VideoFunctions directory..." 'Info'
+    Write-InstallationMessage "Navigating to VideoFunctions directory..." 'Info' $Verbosity
     Set-Location $videoFunctionsDir
     
     # Build parameter hashtables
-    $uninstallParams = Build-UninstallParameters
-    $installParams = Build-InstallParameters
+    $uninstallParams = Build-UninstallParameters -Scope $Scope -Force $Force -Verbosity $Verbosity -WhatIfPreference $WhatIfPreference -ConfirmPreference $ConfirmPreference
+    $installParams = Build-InstallParameters -Scope $Scope -Force $Force -Verbosity $Verbosity -WhatIfPreference $WhatIfPreference -ConfirmPreference $ConfirmPreference
     
-    Write-ReinstallMessage "Uninstall parameters: $($uninstallParams | ConvertTo-Json -Compress)" 'Info'
-    Write-ReinstallMessage "Install parameters: $($installParams | ConvertTo-Json -Compress)" 'Info'
+    Write-InstallationMessage "Uninstall parameters: $($uninstallParams | ConvertTo-Json -Compress)" 'Info' $Verbosity
+    Write-InstallationMessage "Install parameters: $($installParams | ConvertTo-Json -Compress)" 'Info' $Verbosity
     
     # Perform the reinstallation
     $shouldProceed = $false
@@ -285,14 +150,14 @@ try {
     
     if ($shouldProceed) {
         # Step 1: Uninstall
-        Write-ReinstallMessage "Step 1: Uninstalling VideoFunctions module..." 'Info'
+        Write-InstallationMessage "Step 1: Uninstalling VideoFunctions module..." 'Info' $Verbosity
         $uninstallScript = Join-Path $videoFunctionsDir 'Uninstall-VideoFunctions.ps1'
         
         if (-not (Test-Path $uninstallScript)) {
             throw "Uninstall script not found at: $uninstallScript"
         }
         
-        Write-ReinstallMessage "Executing uninstall script with parameters: $($uninstallParams | ConvertTo-Json -Compress)" 'Info'
+        Write-InstallationMessage "Executing uninstall script with parameters: $($uninstallParams | ConvertTo-Json -Compress)" 'Info' $Verbosity
         
         # Execute uninstall script with parameters
         $uninstallResult = & $uninstallScript @uninstallParams
@@ -302,17 +167,17 @@ try {
             throw "Uninstall failed with exit code: $uninstallExitCode"
         }
         
-        Write-ReinstallMessage "Uninstall completed successfully." 'Success'
+        Write-InstallationMessage "Uninstall completed successfully." 'Success' $Verbosity
         
         # Step 2: Install
-        Write-ReinstallMessage "Step 2: Installing VideoFunctions module..." 'Info'
+        Write-InstallationMessage "Step 2: Installing VideoFunctions module..." 'Info' $Verbosity
         $installScript = Join-Path $videoFunctionsDir 'Install-VideoFunctions.ps1'
         
         if (-not (Test-Path $installScript)) {
             throw "Install script not found at: $installScript"
         }
         
-        Write-ReinstallMessage "Executing install script with parameters: $($installParams | ConvertTo-Json -Compress)" 'Info'
+        Write-InstallationMessage "Executing install script with parameters: $($installParams | ConvertTo-Json -Compress)" 'Info' $Verbosity
         
         # Execute install script with parameters
         $installResult = & $installScript @installParams
@@ -322,59 +187,59 @@ try {
             throw "Install failed with exit code: $installExitCode"
         }
         
-        Write-ReinstallMessage "Install completed successfully." 'Success'
+        Write-InstallationMessage "Install completed successfully." 'Success' $Verbosity
     }
     
     # Import module if requested
     if ($ImportModule) {
-        Write-ReinstallMessage "Importing VideoFunctions module..." 'Info'
+        Write-InstallationMessage "Importing VideoFunctions module..." 'Info' $Verbosity
         try {
             Import-Module VideoFunctions -Force -ErrorAction Stop
             $importedFunctions = Get-Command -Module VideoFunctions -ErrorAction SilentlyContinue
             
             if ($importedFunctions) {
-                Write-ReinstallMessage "Module imported successfully. Found $($importedFunctions.Count) functions." 'Success'
+                Write-InstallationMessage "Module imported successfully. Found $($importedFunctions.Count) functions." 'Success' $Verbosity
                 
                 # Show available functions if verbosity allows
-                if ($script:VerbosityLevel -in @('Info', 'Success', 'All')) {
-                    Write-ReinstallMessage "Available functions:" 'Info'
+                if ($Verbosity -in @('Info', 'Success', 'All')) {
+                    Write-InstallationMessage "Available functions:" 'Info' $Verbosity
                     foreach ($function in $importedFunctions) {
-                        Write-ReinstallMessage "  - $($function.Name)" 'Info'
+                        Write-InstallationMessage "  - $($function.Name)" 'Info' $Verbosity
                     }
                 }
             } else {
-                Write-ReinstallMessage "Module imported but no functions found." 'Warning'
+                Write-InstallationMessage "Module imported but no functions found." 'Warning' $Verbosity
             }
         } catch {
-            Write-ReinstallMessage "Failed to import module: $($_.Exception.Message)" 'Error'
+            Write-InstallationMessage "Failed to import module: $($_.Exception.Message)" 'Error' $Verbosity
             throw
         }
     }
     
     # Restore original directory
-    Write-ReinstallMessage "Restoring original directory: $originalDirectory" 'Info'
+    Write-InstallationMessage "Restoring original directory: $originalDirectory" 'Info' $Verbosity
     Set-Location $originalDirectory
     
-    Write-ReinstallMessage "Reinstallation completed successfully!" 'Success'
-    Write-ReinstallMessage "VideoFunctions module has been completely reinstalled." 'Info'
+    Write-InstallationMessage "Reinstallation completed successfully!" 'Success' $Verbosity
+    Write-InstallationMessage "VideoFunctions module has been completely reinstalled." 'Info' $Verbosity
     
     if ($ImportModule) {
-        Write-ReinstallMessage "Module is now available for use. Example: Get-Command -Module VideoFunctions" 'Info'
+        Write-InstallationMessage "Module is now available for use. Example: Get-Command -Module VideoFunctions" 'Info' $Verbosity
     } else {
-        Write-ReinstallMessage "To use the module, run: Import-Module VideoFunctions" 'Info'
+        Write-InstallationMessage "To use the module, run: Import-Module VideoFunctions" 'Info' $Verbosity
     }
     
 } catch {
-    Write-ReinstallMessage "Reinstallation failed: $($_.Exception.Message)" 'Error'
+    Write-InstallationMessage "Reinstallation failed: $($_.Exception.Message)" 'Error' $Verbosity
     
     # Always try to restore the original directory, even on failure
     try {
         if ($originalDirectory -and (Test-Path $originalDirectory)) {
-            Write-ReinstallMessage "Restoring original directory after error: $originalDirectory" 'Warning'
+            Write-InstallationMessage "Restoring original directory after error: $originalDirectory" 'Warning' $Verbosity
             Set-Location $originalDirectory
         }
     } catch {
-        Write-ReinstallMessage "Failed to restore original directory: $($_.Exception.Message)" 'Error'
+        Write-InstallationMessage "Failed to restore original directory: $($_.Exception.Message)" 'Error' $Verbosity
     }
     
     exit 1
