@@ -266,17 +266,13 @@ The uninstallation script provides the following features:
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes following PowerShell best practices
-4. Add appropriate documentation
-5. Submit a pull request
+[Contributing](/CONTRIBUTING.md)
 
 ## License
 
-Copyright © Andrew Bishop 2025
+[Apache License](/LICENSE)
 
 ## Version History
 
-- **1.0.1** - Refactored module structure to follow PowerShell best practices with Public/Private function organization
-- **1.0.0** - Initial release
+[Version History](VERSION.md)
+
