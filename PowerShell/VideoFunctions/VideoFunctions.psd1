@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-# RootModule = ''
+RootModule = 'VideoFunctions.psm1'
 
 # Version number of this module.
 ModuleVersion = '1.0.1'
@@ -33,7 +33,7 @@ Copyright = 'Copyright © Andrew Bishop 2025'
 Description = 'A PowerShell module for video file processing and Plex folder management.'
 
 # Minimum version of the PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '5.1'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -57,7 +57,7 @@ Description = 'A PowerShell module for video file processing and Plex folder man
 # RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-ScriptsToProcess = @('Main')
+# ScriptsToProcess = @()
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
@@ -66,13 +66,7 @@ ScriptsToProcess = @('Main')
 # FormatsToProcess = @()
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-NestedModules = @(
-    'FFMpeg.psm1',
-    'Mkv.psm1',
-    'Mpeg.psm1',
-    'Plex.psm1',
-    'Utilities.psm1'
-)
+# NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
@@ -86,17 +80,13 @@ FunctionsToExport = @(
     'Get-MkvTrackAll',
 
     # Mpeg
-    'Get-MpegStreams'
+    'Get-MpegStreams',
 
     # Plex
     'Add-PlexFolders', 
     'Move-PlexFiles',
     'Remove-PlexEmptyFolders', 
-    'Invoke-PlexFileOperations',
-
-    # Utilities
-    'Get-FileFromPath',
-    'Invoke-Process'
+    'Invoke-PlexFileOperations'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -123,7 +113,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('Video', 'FFmpeg', 'MKV', 'Plex', 'Media', 'Processing')
 
         # A URL to the license for this module.
         # LicenseUri = ''
@@ -135,7 +125,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'Refactored module structure to follow PowerShell best practices with Public/Private function organization.'
 
         # Prerelease string of this module
         # Prerelease = ''
