@@ -1,4 +1,13 @@
 #!/usr/bin/env pwsh
+
+# Import shared installation helpers
+$helpersPath = Join-Path $PSScriptRoot 'Private\InstallationHelpers.ps1'
+if (Test-Path $helpersPath) {
+    . $helpersPath
+} else {
+    throw "InstallationHelpers.ps1 not found at: $helpersPath"
+}
+
 <#
 .SYNOPSIS
     Uninstalls the VideoFunctions PowerShell module.
@@ -15,6 +24,12 @@
 .PARAMETER Force
     Forces the uninstallation without prompting for confirmation.
     When specified, this parameter bypasses all confirmation prompts.
+
+.PARAMETER Verbosity
+    Controls the level of messages displayed. Valid values are 'Silent', 'Error', 'Warning', 'Info', 'Success', and 'All'.
+    Default is 'All'. 'Silent' suppresses all messages except errors, 'Error' shows only errors,
+    'Warning' shows warnings and errors, 'Info' shows info, warnings, and errors, 'Success' shows all except debug,
+    and 'All' shows all message types.
 
 .PARAMETER WhatIf
     Shows what would happen if the script runs without actually performing the uninstallation.
@@ -49,6 +64,16 @@
 
     Shows what would happen without actually uninstalling.
 
+.EXAMPLE
+    .\Uninstall-VideoFunctions.ps1 -Verbosity Silent
+
+    Uninstalls the module with minimal output (errors only).
+
+.EXAMPLE
+    .\Uninstall-VideoFunctions.ps1 -Verbosity Warning
+
+    Uninstalls the module showing only warnings and errors.
+
 .NOTES
     This script can be run from any directory.
     For AllUsers uninstallation, the script must be run with administrative privileges.
@@ -57,119 +82,24 @@
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
     [Parameter(Mandatory = $false)]
-    [ValidateSet('CurrentUser', 'AllUsers', 'All')]
-    [string]$Scope = 'All',
+    [UninstallScope]$Scope = [UninstallScope]::All,
     
     [Parameter(Mandatory = $false)]
-    [switch]$Force
+    [switch]$Force,
+    
+    [Parameter(Mandatory = $false)]
+    [VerbosityLevel]$Verbosity = [VerbosityLevel]::All
 )
 
 # Set strict error handling
 $ErrorActionPreference = 'Stop'
 
-function Write-UninstallMessage {
-    param(
-        [string]$Message,
-        [string]$Type = 'Info'
-    )
-    
-    $timestamp = Get-Date -Format 'yyyy-MM-dd HH-mm-ss'
-    switch ($Type) {
-        'Info'    { Write-Host ("[$timestamp] INFO: " + $Message) -ForegroundColor Cyan }
-        'Success' { Write-Host ("[$timestamp] SUCCESS: " + $Message) -ForegroundColor Green }
-        'Warning' { Write-Host ("[$timestamp] WARNING: " + $Message) -ForegroundColor Yellow }
-        'Error'   { Write-Host ("[$timestamp] ERROR: " + $Message) -ForegroundColor Red }
-    }
-}
-
-function Test-Administrator {
-    <#
-    .SYNOPSIS
-        Tests if the current session is running with administrative privileges.
-    #>
-    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
-
-function Get-ModulePaths {
-    <#
-    .SYNOPSIS
-        Gets all possible module paths for VideoFunctions.
-    #>
-    $paths = @()
-    
-    # Current User paths
-    if ($Scope -in @('CurrentUser', 'All')) {
-        if ($PSVersionTable.PSEdition -eq 'Core') {
-            $paths += "$env:USERPROFILE\Documents\PowerShell\Modules\VideoFunctions"
-        } else {
-            $paths += "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\VideoFunctions"
-        }
-    }
-    
-    # All Users paths
-    if ($Scope -in @('AllUsers', 'All')) {
-        if ($PSVersionTable.PSEdition -eq 'Core') {
-            $paths += "$env:ProgramFiles\PowerShell\Modules\VideoFunctions"
-        } else {
-            $paths += "$env:ProgramFiles\WindowsPowerShell\Modules\VideoFunctions"
-        }
-    }
-    
-    return $paths
-}
-
-function Test-ModuleInstalled {
-    <#
-    .SYNOPSIS
-        Tests if the VideoFunctions module is installed and returns installation locations.
-    #>
-    $modulePaths = Get-ModulePaths
-    $installedPaths = @()
-    
-    foreach ($path in $modulePaths) {
-        if (Test-Path $path) {
-            $installedPaths += $path
-        }
-    }
-    
-    return $installedPaths
-}
-
-function Get-ModuleInfo {
-    param(
-        [string]$ModulePath
-    )
-    
-    try {
-        $manifestPath = Join-Path $ModulePath 'VideoFunctions.psd1'
-        if (Test-Path $manifestPath) {
-            $manifest = Import-PowerShellDataFile -Path $manifestPath
-            return @{
-                Version = $manifest.ModuleVersion
-                Author = $manifest.Author
-                Description = $manifest.Description
-            }
-        }
-    }
-    catch {
-        Write-UninstallMessage ("Failed to read module info from $ModulePath`:" + $_.Exception.Message) 'Warning'
-    }
-    
-    return @{
-        Version = 'Unknown'
-        Author = 'Unknown'
-        Description = 'Unknown'
-    }
-}
-
 # Main uninstallation logic
 try {
-    Write-UninstallMessage "Starting VideoFunctions module uninstallation..."
-    Write-UninstallMessage "PowerShell Version: $($PSVersionTable.PSVersion)"
-    Write-UninstallMessage "PowerShell Edition: $($PSVersionTable.PSEdition)"
-    Write-UninstallMessage "Uninstallation Scope: $Scope"
+    Write-InstallationMessage "Starting VideoFunctions module uninstallation..." 'Info' $Verbosity
+    Write-InstallationMessage "PowerShell Version: $($PSVersionTable.PSVersion)" 'Info' $Verbosity
+    Write-InstallationMessage "PowerShell Edition: $($PSVersionTable.PSEdition)" 'Info' $Verbosity
+    Write-InstallationMessage "Uninstallation Scope: $Scope" 'Info' $Verbosity
     
     # Check for administrative privileges if needed
     if ($Scope -eq 'AllUsers' -and -not (Test-Administrator)) {
@@ -177,30 +107,30 @@ try {
     }
     
     # Find installed modules
-    $installedPaths = Test-ModuleInstalled
+    $installedPaths = Test-ModuleInstalled -Scope $Scope
     
     if ($installedPaths.Count -eq 0) {
-        Write-UninstallMessage "VideoFunctions module is not installed in the specified scope(s)." 'Warning'
+        Write-InstallationMessage "VideoFunctions module is not installed in the specified scope(s)." 'Warning' $Verbosity
         return
     }
     
-    Write-UninstallMessage "Found VideoFunctions module in $($installedPaths.Count) location(s):"
+    Write-InstallationMessage "Found VideoFunctions module in $($installedPaths.Count) location(s):" 'Info' $Verbosity
     foreach ($path in $installedPaths) {
-        $moduleInfo = Get-ModuleInfo -ModulePath $path
-        Write-Host "  - $path (Version: $($moduleInfo.Version))" -ForegroundColor White
+        $moduleInfo = Get-ModuleInfo -ModulePath $path -VerbosityLevel $Verbosity
+        Write-InstallationMessage "  - $path (Version: $($moduleInfo.Version))" 'Info' $Verbosity
     }
     
     # Check if module is currently loaded
     $loadedModule = Get-Module VideoFunctions -ErrorAction SilentlyContinue
     if ($loadedModule) {
-        Write-UninstallMessage "Module is currently loaded. Attempting to remove..." 'Warning'
+        Write-InstallationMessage "Module is currently loaded. Attempting to remove..." 'Warning' $Verbosity
         try {
             Remove-Module VideoFunctions -Force -ErrorAction Stop
-            Write-UninstallMessage "Module removed from memory successfully." 'Success'
+            Write-InstallationMessage "Module removed from memory successfully." 'Success' $Verbosity
         }
         catch {
-            Write-UninstallMessage "Failed to remove module from memory: $($_.Exception.Message)" 'Warning'
-            Write-UninstallMessage "Please close any PowerShell sessions using the module and try again." 'Info'
+            Write-InstallationMessage "Failed to remove module from memory: $($_.Exception.Message)" 'Warning' $Verbosity
+            Write-InstallationMessage "Please close any PowerShell sessions using the module and try again." 'Info' $Verbosity
         }
     }
     
@@ -218,37 +148,37 @@ try {
         
         if ($shouldProceed) {
             try {
-                Write-UninstallMessage "Removing module from: $path"
+                Write-InstallationMessage "Removing module from: $path" 'Info' $Verbosity
                 
                 # Get module info before removal
-                $moduleInfo = Get-ModuleInfo -ModulePath $path
+                $moduleInfo = Get-ModuleInfo -ModulePath $path -VerbosityLevel $Verbosity
                 
                 # Remove the module directory
                 Remove-Item -Path $path -Recurse -Force -ErrorAction Stop
                 
-                Write-UninstallMessage "Successfully removed VideoFunctions version $($moduleInfo.Version) from $path" 'Success'
+                Write-InstallationMessage "Successfully removed VideoFunctions version $($moduleInfo.Version) from $path" 'Success' $Verbosity
             }
             catch {
-                Write-UninstallMessage ("Failed to remove module from $path`:" + $_.Exception.Message) 'Error'
+                Write-InstallationMessage "Failed to remove module from $path`: $($_.Exception.Message)" 'Error' $Verbosity
                 throw
             }
         }
     }
     
     # Verify uninstallation
-    $remainingPaths = Test-ModuleInstalled
+    $remainingPaths = Test-ModuleInstalled -Scope $Scope
     if ($remainingPaths.Count -eq 0) {
-        Write-UninstallMessage "Uninstallation completed successfully!" 'Success'
-        Write-UninstallMessage "VideoFunctions module has been completely removed from the system." 'Info'
+        Write-InstallationMessage "Uninstallation completed successfully!" 'Success' $Verbosity
+        Write-InstallationMessage "VideoFunctions module has been completely removed from the system." 'Info' $Verbosity
     } else {
-        Write-UninstallMessage "Uninstallation completed with warnings." 'Warning'
-        Write-UninstallMessage "Remaining module locations:"
+        Write-InstallationMessage "Uninstallation completed with warnings." 'Warning' $Verbosity
+        Write-InstallationMessage "Remaining module locations:" 'Warning' $Verbosity
         foreach ($path in $remainingPaths) {
-            Write-Host "  - $path" -ForegroundColor Yellow
+            Write-InstallationMessage "  - $path" 'Warning' $Verbosity
         }
     }
     
 } catch {
-    Write-UninstallMessage "Uninstallation failed: $($_.Exception.Message)" 'Error'
+    Write-InstallationMessage "Uninstallation failed: $($_.Exception.Message)" 'Error' $Verbosity
     exit 1
 } 

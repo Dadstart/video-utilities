@@ -1,4 +1,13 @@
 #!/usr/bin/env pwsh
+
+# Import shared installation helpers
+$helpersPath = Join-Path $PSScriptRoot 'Private\InstallationHelpers.ps1'
+if (Test-Path $helpersPath) {
+    . $helpersPath
+} else {
+    throw "InstallationHelpers.ps1 not found at: $helpersPath"
+}
+
 <#
 .SYNOPSIS
     Installs the VideoFunctions PowerShell module.
@@ -14,6 +23,12 @@
 
 .PARAMETER Force
     Forces the installation even if the module already exists.
+
+.PARAMETER Verbosity
+    Controls the level of messages displayed. Valid values are 'Silent', 'Error', 'Warning', 'Info', 'Success', and 'All'.
+    Default is 'All'. 'Silent' suppresses all messages except errors, 'Error' shows only errors,
+    'Warning' shows warnings and errors, 'Info' shows info, warnings, and errors, 'Success' shows all except debug,
+    and 'All' shows all message types.
 
 .PARAMETER WhatIf
     Shows what would happen if the script runs without actually performing the installation.
@@ -41,134 +56,47 @@
 
     Shows what would happen without actually installing.
 
+.EXAMPLE
+    .\Install-VideoFunctions.ps1 -Verbosity Silent
+
+    Installs the module with minimal output (errors only).
+
+.EXAMPLE
+    .\Install-VideoFunctions.ps1 -Verbosity Warning
+
+    Installs the module showing only warnings and errors.
+
 .NOTES
     This script should be run from the directory containing the VideoFunctions module.
     For AllUsers installation, the script must be run with administrative privileges.
 #>
 
+# Suppress linter warnings for dot-sourced enums
+# The enums are imported from InstallationHelpers.ps1
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $false)]
-    [ValidateSet('CurrentUser', 'AllUsers')]
-    [string]$Scope = 'CurrentUser',
+    [InstallScope]$Scope = [InstallScope]::CurrentUser,
     
     [Parameter(Mandatory = $false)]
-    [switch]$Force
+    [switch]$Force,
+    
+    [Parameter(Mandatory = $false)]
+    [VerbosityLevel]$Verbosity = [VerbosityLevel]::All
 )
 
 # Set strict error handling
 $ErrorActionPreference = 'Stop'
 
-function Write-InstallMessage {
-    param(
-        [string]$Message,
-        [string]$Type = 'Info'
-    )
-    
-    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    switch ($Type) {
-        'Info'    { Write-Host "[$timestamp] INFO: $Message" -ForegroundColor Cyan }
-        'Success' { Write-Host "[$timestamp] SUCCESS: $Message" -ForegroundColor Green }
-        'Warning' { Write-Host "[$timestamp] WARNING: $Message" -ForegroundColor Yellow }
-        'Error'   { Write-Host "[$timestamp] ERROR: $Message" -ForegroundColor Red }
-    }
-}
-
-function Test-Administrator {
-    <#
-    .SYNOPSIS
-        Tests if the current session is running with administrative privileges.
-    #>
-    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
-
-function Get-ModuleInstallPath {
-    param(
-        [string]$Scope
-    )
-    
-    if ($Scope -eq 'AllUsers') {
-        if ($PSVersionTable.PSEdition -eq 'Core') {
-            return "$env:ProgramFiles\PowerShell\Modules"
-        } else {
-            return "$env:ProgramFiles\WindowsPowerShell\Modules"
-        }
-    } else {
-        if ($PSVersionTable.PSEdition -eq 'Core') {
-            return "$env:USERPROFILE\Documents\PowerShell\Modules"
-        } else {
-            return "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"
-        }
-    }
-}
-
-function Test-ModuleStructure {
-    <#
-    .SYNOPSIS
-        Tests if the current directory contains a valid VideoFunctions module structure.
-    #>
-    $requiredFiles = @(
-        'VideoFunctions.psd1',
-        'VideoFunctions.psm1'
-    )
-    
-    $requiredDirectories = @(
-        'Public',
-        'Private'
-    )
-    
-    # Check for required files
-    foreach ($file in $requiredFiles) {
-        if (-not (Test-Path $file)) {
-            Write-InstallMessage "Required file '$file' not found in current directory." 'Error'
-            return $false
-        }
-    }
-    
-    # Check for required directories
-    foreach ($dir in $requiredDirectories) {
-        if (-not (Test-Path $dir)) {
-            Write-InstallMessage "Required directory '$dir' not found in current directory." 'Error'
-            return $false
-        }
-    }
-    
-    # Check for at least one function file in Public directory
-    $publicFunctions = Get-ChildItem -Path 'Public' -Filter '*.ps1' -ErrorAction SilentlyContinue
-    if ($publicFunctions.Count -eq 0) {
-        Write-InstallMessage "No function files found in Public directory." 'Error'
-        return $false
-    }
-    
-    return $true
-}
-
-function Get-ModuleVersion {
-    <#
-    .SYNOPSIS
-        Gets the version from the module manifest.
-    #>
-    try {
-        $manifest = Import-PowerShellDataFile -Path 'VideoFunctions.psd1'
-        return $manifest.ModuleVersion
-    }
-    catch {
-        Write-InstallMessage "Failed to read module version from manifest: $($_.Exception.Message)" 'Warning'
-        return 'Unknown'
-    }
-}
-
 # Main installation logic
 try {
-    Write-InstallMessage "Starting VideoFunctions module installation..."
-    Write-InstallMessage "PowerShell Version: $($PSVersionTable.PSVersion)"
-    Write-InstallMessage "PowerShell Edition: $($PSVersionTable.PSEdition)"
-    Write-InstallMessage "Installation Scope: $Scope"
+    Write-InstallationMessage "Starting VideoFunctions module installation..." 'Info' $Verbosity
+    Write-InstallationMessage "PowerShell Version: $($PSVersionTable.PSVersion)" 'Info' $Verbosity
+    Write-InstallationMessage "PowerShell Edition: $($PSVersionTable.PSEdition)" 'Info' $Verbosity
+    Write-InstallationMessage "Installation Scope: $Scope" 'Info' $Verbosity
     
     # Check if running from the correct directory
-    if (-not (Test-ModuleStructure)) {
+    if (-not (Test-ModuleStructure -VerbosityLevel $Verbosity)) {
         throw "Current directory does not contain a valid VideoFunctions module structure. Please run this script from the VideoFunctions module directory."
     }
     
@@ -181,55 +109,55 @@ try {
     $installPath = Get-ModuleInstallPath -Scope $Scope
     $modulePath = Join-Path $installPath 'VideoFunctions'
     
-    Write-InstallMessage "Installation path: $modulePath"
+    Write-InstallationMessage "Installation path: $modulePath" 'Info' $Verbosity
     
     # Check if module already exists
     if (Test-Path $modulePath) {
         if ($Force) {
-            Write-InstallMessage "Module already exists. Force flag specified, will overwrite existing installation." 'Warning'
+            Write-InstallationMessage "Module already exists. Force flag specified, will overwrite existing installation." 'Warning' $Verbosity
         } else {
             throw "Module already exists at '$modulePath'. Use -Force to overwrite or -Scope CurrentUser to install for current user only."
         }
     }
     
     # Get current module version
-    $moduleVersion = Get-ModuleVersion
-    Write-InstallMessage "Installing VideoFunctions version $moduleVersion"
+    $moduleVersion = Get-ModuleVersion -VerbosityLevel $Verbosity
+    Write-InstallationMessage "Installing VideoFunctions version $moduleVersion" 'Info' $Verbosity
     
     # Perform the installation
     if ($PSCmdlet.ShouldProcess($modulePath, "Install VideoFunctions module")) {
         # Create the module directory if it doesn't exist
         if (-not (Test-Path $installPath)) {
-            Write-InstallMessage "Creating modules directory: $installPath"
+            Write-InstallationMessage "Creating modules directory: $installPath" 'Info' $Verbosity
             New-Item -Path $installPath -ItemType Directory -Force | Out-Null
         }
         
         # Copy the module files
-        Write-InstallMessage "Copying module files to: $modulePath"
+        Write-InstallationMessage "Copying module files to: $modulePath" 'Info' $Verbosity
         Copy-Item -Path '.' -Destination $modulePath -Recurse -Force
         
         # Verify the installation
         if (Test-Path $modulePath) {
-            Write-InstallMessage "Module files copied successfully." 'Success'
+            Write-InstallationMessage "Module files copied successfully." 'Success' $Verbosity
             
             # Test module import
-            Write-InstallMessage "Testing module import..."
+            Write-InstallationMessage "Testing module import..." 'Info' $Verbosity
             try {
                 Import-Module $modulePath -Force -ErrorAction Stop
                 $importedFunctions = Get-Command -Module VideoFunctions
-                Write-InstallMessage "Module imported successfully. Found $($importedFunctions.Count) functions." 'Success'
+                Write-InstallationMessage "Module imported successfully. Found $($importedFunctions.Count) functions." 'Success' $Verbosity
                 
                 # Show available functions
-                Write-InstallMessage "Available functions:"
+                Write-InstallationMessage "Available functions:" 'Info' $Verbosity
                 foreach ($function in $importedFunctions) {
-                    Write-Host "  - $($function.Name)" -ForegroundColor White
+                    Write-InstallationMessage "  - $($function.Name)" 'Info' $Verbosity
                 }
                 
                 # Remove the module to clean up
                 Remove-Module VideoFunctions -Force -ErrorAction SilentlyContinue
                 
             } catch {
-                Write-InstallMessage "Module import test failed: $($_.Exception.Message)" 'Error'
+                Write-InstallationMessage "Module import test failed: $($_.Exception.Message)" 'Error' $Verbosity
                 throw
             }
             
@@ -238,16 +166,16 @@ try {
         }
     }
     
-    Write-InstallMessage "Installation completed successfully!" 'Success'
-    Write-InstallMessage "To use the module, run: Import-Module VideoFunctions" 'Info'
+    Write-InstallationMessage "Installation completed successfully!" 'Success' $Verbosity
+    Write-InstallationMessage "To use the module, run: Import-Module VideoFunctions" 'Info' $Verbosity
     
     # Show usage examples
-    Write-InstallMessage "Example usage:" 'Info'
-    Write-Host "  Import-Module VideoFunctions" -ForegroundColor White
-    Write-Host "  Get-Command -Module VideoFunctions" -ForegroundColor White
-    Write-Host "  Get-Help Get-FFMpegVersion" -ForegroundColor White
+    Write-InstallationMessage "Example usage:" 'Info' $Verbosity
+    Write-InstallationMessage "  Import-Module VideoFunctions" 'Info' $Verbosity
+    Write-InstallationMessage "  Get-Command -Module VideoFunctions" 'Info' $Verbosity
+    Write-InstallationMessage "  Get-Help Get-FFMpegVersion" 'Info' $Verbosity
     
 } catch {
-    Write-InstallMessage "Installation failed: $($_.Exception.Message)" 'Error'
+    Write-InstallationMessage "Installation failed: $($_.Exception.Message)" 'Error' $Verbosity
     exit 1
 } 
