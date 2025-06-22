@@ -1,61 +1,213 @@
-# Video Functions PowerShell Module
+# VideoFunctions PowerShell Module
 
-## Overview
-The Video Functions module provides a set of PowerShell functions designed to facilitate the extraction of audio and subtitle tracks from MKV files, as well as manage Plex folder structures for bonus content. This module is particularly useful for users who want to organize their video files and associated content efficiently.
+A PowerShell module for video file processing and Plex folder management. This module provides functions for working with FFmpeg, MKV files, and Plex media organization.
 
-## Functions
-The module includes the following functions:
+## Features
 
-- **Get-MkvTrack**: Extracts a specific audio or subtitle track from an MKV file.
-- **Get-MkvTracks**: Extracts multiple audio or subtitle tracks from a single MKV file.
-- **Get-MkvTrackAll**: Extracts a specific track from multiple MKV files.
-- **Add-PlexFolders**: Creates a set of predefined Plex folder structures for organizing bonus content.
-- **Move-PlexFiles**: Moves bonus content files into their respective Plex folders based on naming conventions.
-- **Remove-PlexEmptyFolders**: Deletes any empty Plex folders that may have been created.
-- **Invoke-PlexFileOperations**: Executes a series of operations to organize Plex content in a specified directory.
+- **FFmpeg Integration**: Functions for working with FFmpeg and FFprobe
+- **MKV Processing**: Extract audio and subtitle tracks from MKV files
+- **Media Analysis**: Analyze media streams and properties
+- **Plex Organization**: Automate Plex media folder structure and file organization
 
 ## Installation
-To install the Video Functions module, clone the repository or download the files and place them in a directory of your choice. Import the module in your PowerShell session using the following command:
 
-```powershell
-Import-Module 'path\to\VideoFunctions\VideoFunctions.psm1'
+### Prerequisites
+
+- PowerShell 5.1 or higher
+- FFmpeg (for FFmpeg-related functions)
+- MKVToolNix (for MKV processing functions)
+
+### Manual Installation
+
+1. Clone or download this repository
+2. Copy the `VideoFunctions` folder to your PowerShell modules directory:
+   - **Windows**: `$env:USERPROFILE\Documents\WindowsPowerShell\Modules\`
+   - **PowerShell Core**: `$env:USERPROFILE\Documents\PowerShell\Modules\`
+
+3. Import the module:
+   ```powershell
+   Import-Module VideoFunctions
+   ```
+
+## Module Structure
+
+The module follows PowerShell best practices with organized function structure:
+
+```
+VideoFunctions/
+├── VideoFunctions.psd1          # Module manifest
+├── VideoFunctions.psm1          # Root module file
+├── Public/                      # Public functions (exported)
+│   ├── Get-FFMpegVersion.ps1
+│   ├── Invoke-FFProbe.ps1
+│   ├── Get-MkvTrack.ps1
+│   ├── Get-MkvTracks.ps1
+│   ├── Get-MkvTrackAll.ps1
+│   ├── Get-MpegStreams.ps1
+│   ├── Add-PlexFolders.ps1
+│   ├── Move-PlexFiles.ps1
+│   ├── Remove-PlexEmptyFolders.ps1
+│   └── Invoke-PlexFileOperations.ps1
+└── Private/                     # Private helper functions
+    ├── Test-FFMpegInstalled.ps1
+    ├── Get-FileFromPath.ps1
+    └── Invoke-Process.ps1
 ```
 
-## Usage
-Here are some examples of how to use the functions in this module:
+## Available Functions
 
-### Extract a Track from an MKV File
+### FFmpeg Functions
+
+#### `Get-FFMpegVersion`
+Retrieves the version of FFmpeg installed on the system.
+
+```powershell
+Get-FFMpegVersion
+```
+
+#### `Invoke-FFProbe`
+Runs FFprobe with specified arguments and returns parsed JSON output.
+
+```powershell
+Invoke-FFProbe '-show_streams', 'video.mp4'
+```
+
+### MKV Functions
+
+#### `Get-MkvTrack`
+Extracts a single track from an MKV file.
+
 ```powershell
 Get-MkvTrack 'Movie.mkv' 2 'en.sdh.sup'
 ```
 
-### Extract Multiple Tracks from an MKV File
+#### `Get-MkvTracks`
+Extracts multiple tracks from an MKV file.
+
 ```powershell
-Get-MkvTracks 'Movie.mkv' @(2, 3) 'ac3'
+Get-MkvTracks 'Movie.mkv' (2,3) 'ac3'
 ```
 
-### Create Plex Folders
+#### `Get-MkvTrackAll`
+Extracts the same track from multiple MKV files.
+
+```powershell
+Get-MkvTrackAll ('Movie.mkv','Film.mkv') 2 'en.sdh.sup'
+```
+
+### Media Analysis Functions
+
+#### `Get-MpegStreams`
+Retrieves and filters media streams from a file.
+
+```powershell
+# Get all audio streams
+Get-MpegStreams 'video.mp4' -Type Audio
+
+# Get English subtitle streams
+Get-MpegStreams 'video.mp4' -Type Subtitle -Language 'eng'
+```
+
+### Plex Functions
+
+#### `Add-PlexFolders`
+Creates the standard Plex bonus content folder structure.
+
 ```powershell
 Add-PlexFolders 'C:\plex\movies\My Movie'
 ```
 
-### Move Bonus Content to Plex Folders
+#### `Move-PlexFiles`
+Moves bonus content files to appropriate Plex folders.
+
 ```powershell
 Move-PlexFiles 'C:\plex\movies\My Movie'
 ```
 
-### Remove Empty Plex Folders
+#### `Remove-PlexEmptyFolders`
+Removes empty Plex bonus content folders.
+
 ```powershell
 Remove-PlexEmptyFolders 'C:\plex\movies\My Movie'
 ```
 
-### Invoke All Plex File Operations
+#### `Invoke-PlexFileOperations`
+Performs all Plex organization operations in sequence.
+
 ```powershell
 Invoke-PlexFileOperations 'C:\plex\movies\My Movie'
 ```
 
+## Plex Folder Structure
+
+The module creates the following standard Plex bonus content folders:
+
+- **Behind The Scenes** - Files with `-behindthescenes` suffix
+- **Deleted Scenes** - Files with `-deleted` suffix
+- **Featurettes** - Files with `-featurette` suffix
+- **Interviews** - Files with `-interview` suffix
+- **Scenes** - Files with `-scene` suffix
+- **Shorts** - Files with `-short` suffix
+- **Trailers** - Files with `-trailer` suffix
+- **Other** - Files with `-other` suffix
+
+## Examples
+
+### Complete Plex Organization Workflow
+
+```powershell
+# Import the module
+Import-Module VideoFunctions
+
+# Organize a movie directory
+Invoke-PlexFileOperations 'C:\plex\movies\The Matrix (1999)'
+```
+
+### MKV Track Extraction Workflow
+
+```powershell
+# Extract English subtitle track
+Get-MkvTrack 'Movie.mkv' 2 'en.sdh.sup'
+
+# Extract multiple audio tracks
+Get-MkvTracks 'Movie.mkv' (1,2,3) 'ac3'
+```
+
+### Media Analysis
+
+```powershell
+# Get all streams in a video file
+$streams = Get-MpegStreams 'video.mp4'
+
+# Get only audio streams
+$audioStreams = Get-MpegStreams 'video.mp4' -Type Audio
+
+# Get English subtitle streams
+$englishSubtitles = Get-MpegStreams 'video.mp4' -Type Subtitle -Language 'eng'
+```
+
+## Error Handling
+
+The module includes comprehensive error handling:
+
+- FFmpeg dependency checking
+- File existence validation
+- Process execution error handling
+- Detailed error messages and logging
+
 ## Contributing
-Contributions to the Video Functions module are welcome. Please submit a pull request or open an issue for any enhancements or bug fixes.
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes following PowerShell best practices
+4. Add appropriate documentation
+5. Submit a pull request
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+
+Copyright © Andrew Bishop 2025
+
+## Version History
+
+- **1.0.1** - Refactored module structure to follow PowerShell best practices with Public/Private function organization
+- **1.0.0** - Initial release
