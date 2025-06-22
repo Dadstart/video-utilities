@@ -31,7 +31,7 @@ function Test-FFMpegInstalled {
     [OutputType([boolean])]
     param (
         [Parameter(Mandatory = $false)]
-        [boolean]$Throw = $true
+        [switch]$Throw
     )
 
     $test = Get-FileFromPath -Name 'ffmpeg'
@@ -40,7 +40,7 @@ function Test-FFMpegInstalled {
         return $true
     }
     elseif ($Throw) {
-        throw "ffmpeg is not installed or not found in the system PATH."
+        throw "ffmpeg is not installed or in the system PATH."
     }
     else {
         return $false

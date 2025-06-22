@@ -23,7 +23,7 @@ function Get-FFMpegVersion {
     [OutputType([string])]
     param()
 
-    Test-FFMpegInstalled -Throw $true | Out-Null
+    Test-FFMpegInstalled -Throw | Out-Null
     
     $result = Invoke-FFProbe '-show_program_version'
 
