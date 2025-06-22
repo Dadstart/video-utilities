@@ -14,12 +14,15 @@
 
 .PARAMETER Force
     Forces the uninstallation without prompting for confirmation.
+    When specified, this parameter bypasses all confirmation prompts.
 
 .PARAMETER WhatIf
     Shows what would happen if the script runs without actually performing the uninstallation.
 
 .PARAMETER Confirm
     Prompts for confirmation before performing the uninstallation.
+    Note: Due to the high impact nature of this operation, confirmation may still be required
+    unless -Force is specified.
 
 .EXAMPLE
     .\Uninstall-VideoFunctions.ps1
@@ -203,7 +206,17 @@ try {
     
     # Perform the uninstallation
     foreach ($path in $installedPaths) {
-        if ($PSCmdlet.ShouldProcess($path, "Remove VideoFunctions module")) {
+        $shouldProceed = $false
+        
+        if ($Force) {
+            # When -Force is specified, bypass confirmation
+            $shouldProceed = $true
+        } else {
+            # Use ShouldProcess for confirmation handling
+            $shouldProceed = $PSCmdlet.ShouldProcess($path, "Remove VideoFunctions module")
+        }
+        
+        if ($shouldProceed) {
             try {
                 Write-UninstallMessage "Removing module from: $path"
                 
