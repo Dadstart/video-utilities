@@ -13,7 +13,7 @@ See [full instructions](/PowerShell/VideoFunctions/README.md) for additional det
 2. Run the installation script:
 
 ```powershell
-.\PowerShell\VideoFunctions\Install-VideoFunctions.ps1
+.\PowerShell\VideoFunctions\QuickInstall.ps1
 ```
 
 ## Contributing
