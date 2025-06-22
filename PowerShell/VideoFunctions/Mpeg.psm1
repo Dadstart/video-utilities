@@ -54,13 +54,13 @@ function Get-MpegStreams {
         [string]$language = $null
     )
 
-    $streams = Invoke-FFProbe '-show_streams', $name;
-    $audioTracks = $streams.streams | Where-Object { 
+    $allStreams = Invoke-FFProbe '-show_streams', $name;
+    $matchingStreams = $streams.streams | Where-Object { 
         (($type -eq [StreamType]::All) -or ($_.codec_type -eq $type.ToString().ToLowerInvariant())) `
         -and `
         ((-not $language) -or ($_.tags.language -eq $language))
     }
     
-    Write-Verbose "Found $($audioTracks.Count) audio tracks in $name with language code '$language'.";
-    return $audioTracks;
+    Write-Verbose "Found $($matchingStreams.Count) streams in $name with language code '$language'.";
+    return $matchingStreams;
 }
