@@ -67,6 +67,7 @@ function Invoke-Process {
     $psi.UseShellExecute = $false;
     $psi.RedirectStandardOutput = $true;
     $psi.RedirectStandardError = $true;
+    $psi.WorkingDirectory = $PWD.Path; # Use current working directory
     $psi.FileName = $name;
     $psi.Arguments = $arguments -join ' ';
     Write-Verbose "Invoke-Process: Process Info: $($psi.FileName) $($psi.Arguments)";
