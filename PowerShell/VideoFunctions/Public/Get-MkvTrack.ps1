@@ -32,6 +32,7 @@ function Get-MkvTrack {
         This function requires mkvextract to be installed and available in the system PATH.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Name,

@@ -27,6 +27,7 @@ function Invoke-PlexFileOperations {
         This function is a convenience wrapper that performs all Plex organization operations in sequence.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Destination

@@ -42,7 +42,7 @@ function Get-MediaStream {
         Retrieves the first subtitle stream (index 0) from 'example.mp4'.
 
     .OUTPUTS
-        [System.Object]
+        [object]
         Returns a single stream object at the specified index (after type filtering).
 
     .NOTES
@@ -51,6 +51,7 @@ function Get-MediaStream {
         The index applies to streams of the specified type, not all streams in the file.
     #>
     [CmdletBinding()]
+    [OutputType([object])]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [string]$Name,

@@ -41,13 +41,14 @@ function Get-MediaStreams {
         # Retrieves all streams from 'example.mp4' with no filtering.
 
     .OUTPUTS
-        [System.Object[]] Array of stream objects, each with stream index,
+        [object[]] Array of stream objects, each with stream index,
         type, and language info.
 
     .NOTES
         Requires ffmpeg/ffprobe to be installed and available in the system PATH.
     #>
     [CmdletBinding()]
+    [OutputType([object[]])]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [string]$Path,

@@ -26,6 +26,7 @@ function Move-PlexFiles {
         This function looks for files with specific suffixes in the current directory and moves them to appropriate Plex folders.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Destination

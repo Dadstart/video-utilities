@@ -26,6 +26,7 @@ function Add-PlexFolders {
         This function creates the standard Plex bonus content folder structure.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Destination

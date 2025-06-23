@@ -26,6 +26,7 @@ function Remove-PlexEmptyFolders {
         This function only removes Plex bonus content folders that are completely empty.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Destination
