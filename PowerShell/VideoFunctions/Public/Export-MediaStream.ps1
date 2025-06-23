@@ -9,7 +9,7 @@ enum StreamType {
 function Export-MediaStream {
     <#
     .SYNOPSIS
-        Extracts a raw stream from a media file using ffmpeg.
+        Extracts a stream from a media file using ffmpeg.
 
     .DESCRIPTION
         This function uses ffmpeg to extract a specific stream from a media file
