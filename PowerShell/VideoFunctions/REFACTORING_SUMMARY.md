@@ -32,7 +32,7 @@ VideoFunctions/
 │   ├── Get-MkvTrack.ps1
 │   ├── Get-MkvTracks.ps1
 │   ├── Get-MkvTrackAll.ps1
-│   ├── Get-MpegStreams.ps1
+│   ├── Get-MediaStreams.ps1
 │   ├── Add-PlexFolders.ps1
 │   ├── Move-PlexFiles.ps1
 │   ├── Remove-PlexEmptyFolders.ps1
@@ -49,7 +49,7 @@ VideoFunctions/
 #### Public Functions (Exported)
 - **FFmpeg Functions**: `Get-FFMpegVersion`, `Invoke-FFProbe`
 - **MKV Functions**: `Get-MkvTrack`, `Get-MkvTracks`, `Get-MkvTrackAll`
-- **Media Analysis**: `Get-MpegStreams`
+- **Media Analysis**: `Get-MediaStreams`
 - **Plex Functions**: `Add-PlexFolders`, `Move-PlexFiles`, `Remove-PlexEmptyFolders`, `Invoke-PlexFileOperations`
 
 #### Private Functions (Internal)

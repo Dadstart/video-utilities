@@ -43,7 +43,7 @@ VideoFunctions/
 │   ├── Get-MkvTrack.ps1
 │   ├── Get-MkvTracks.ps1
 │   ├── Get-MkvTrackAll.ps1
-│   ├── Get-MpegStreams.ps1
+│   ├── Get-MediaStreams.ps1
 │   ├── Add-PlexFolders.ps1
 │   ├── Move-PlexFiles.ps1
 │   ├── Remove-PlexEmptyFolders.ps1
@@ -98,15 +98,15 @@ Get-MkvTrackAll ('Movie.mkv','Film.mkv') 2 'en.sdh.sup'
 
 ### Media Analysis Functions
 
-#### `Get-MpegStreams`
+#### `Get-MediaStreams`
 Retrieves and filters media streams from a file.
 
 ```powershell
 # Get all audio streams
-Get-MpegStreams 'video.mp4' -Type Audio
+Get-MediaStreams 'video.mp4' -Type Audio
 
 # Get English subtitle streams
-Get-MpegStreams 'video.mp4' -Type Subtitle -Language 'eng'
+Get-MediaStreams 'video.mp4' -Type Subtitle -Language 'eng'
 ```
 
 ### Plex Functions
@@ -178,13 +178,13 @@ Get-MkvTracks 'Movie.mkv' (1,2,3) 'ac3'
 
 ```powershell
 # Get all streams in a video file
-$streams = Get-MpegStreams 'video.mp4'
+$streams = Get-MediaStreams 'video.mp4'
 
 # Get only audio streams
-$audioStreams = Get-MpegStreams 'video.mp4' -Type Audio
+$audioStreams = Get-MediaStreams 'video.mp4' -Type Audio
 
 # Get English subtitle streams
-$englishSubtitles = Get-MpegStreams 'video.mp4' -Type Subtitle -Language 'eng'
+$englishSubtitles = Get-MediaStreams 'video.mp4' -Type Subtitle -Language 'eng'
 ```
 
 ## Error Handling

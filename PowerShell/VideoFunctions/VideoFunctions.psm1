@@ -39,14 +39,22 @@ Export-ModuleMember -Function @(
     'Get-FFMpegVersion',
     'Invoke-FFProbe',
     
+    # Media functions
+    'Get-MediaStream',
+    'Get-MediaStreams',
+    'Export-MediaStreamContent',
+    
     # MKV functions
     'Get-MkvTrack',
     'Get-MkvTracks',
     'Get-MkvTrackAll',
     
+<<<<<<< HEAD
     # MPEG functions
     'Get-MpegStreams',
     
+=======
+>>>>>>> a150dcb (Rename Get-MpegStream* to Get-MediaStream*)
     # Plex functions
     'Add-PlexFolders',
     'Move-PlexFiles',
