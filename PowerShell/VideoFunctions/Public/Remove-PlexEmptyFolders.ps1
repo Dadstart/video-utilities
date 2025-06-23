@@ -49,7 +49,7 @@ function Remove-PlexEmptyFolders {
 
     $foldersDeleted = 0
     foreach ($folder in $plexLayout.Keys) {
-        $path = "$Destination\$folder"
+        $path = Join-Path -Path $Destination -ChildPath $folder
 
         if (-not (Test-Path -Path $path)) {
             continue

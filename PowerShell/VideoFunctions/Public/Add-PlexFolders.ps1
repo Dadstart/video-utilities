@@ -48,7 +48,7 @@ function Add-PlexFolders {
     }
 
     foreach ($folder in $plexLayout.Keys) {
-        $path = "$Destination\$folder"
+        $path = Join-Path -Path $Destination -ChildPath $folder
         if (-not (Test-Path -Path $path)) {
             New-Item -Path $path -ItemType Directory
         }

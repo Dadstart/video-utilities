@@ -50,7 +50,7 @@ function Move-PlexFiles {
     foreach ($folder in $plexLayout.Keys) {
         $fileSuffix = $plexLayout[$folder]
         $destFiles = (Get-ChildItem -Recurse "*-$fileSuffix.mp4") + (Get-ChildItem -Recurse "*-$fileSuffix.srt")
-        $destFolder = "$Destination\$folder"
+        $destFolder = Join-Path -Path $Destination -ChildPath $folder
         Write-Host "Moving -$fileSuffix to $destFolder"
         foreach ($destFile in $destFiles) {
             Move-Item $destFile.Name "$destFolder"
