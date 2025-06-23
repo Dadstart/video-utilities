@@ -41,7 +41,7 @@ Export-ModuleMember -Function @(
     # Media functions
     'Get-MediaStream',
     'Get-MediaStreams',
-    'Export-MediaStreamContent',
+    'Export-MediaStream',
 
     # MKV functions
     'Get-MkvTrack',
