@@ -91,7 +91,7 @@ function Export-MediaStream {
         [ValidateRange(0, [int]::MaxValue)]
         [int]$Index,
         
-        [Parameter]
+        [Parameter()]
         [switch]$Force
     )
 
