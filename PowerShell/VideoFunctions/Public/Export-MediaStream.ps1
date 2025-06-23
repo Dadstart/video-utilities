@@ -1,14 +1,164 @@
+enum StreamType {
+    Data
+    Audio
+    Video
+    Subtitle
+}
+
 function Export-MediaStream {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path,
+    <#
+    .SYNOPSIS
+        Extracts a raw stream from a media file using ffmpeg.
+
+    .DESCRIPTION
+        This function uses ffmpeg to extract a specific stream from a media file
+        and outputs it as a raw stream file. The stream can be filtered by type
+        (Audio, Video, Subtitle, Data) and selected by index.
+
+    .PARAMETER InputPath
+        Path to the input media file.
+
+    .PARAMETER OutputPath
+        Path where the raw stream file will be saved.
+
+    .PARAMETER Type
+        Type of stream to filter by. Must be one of: Audio, Video, Subtitle, or Data.
+
+    .PARAMETER Index
+        Zero-based index of the stream to extract (after type filtering).
+
+    .PARAMETER Force
+        Overwrites the output file if it already exists.
+
+    .PARAMETER WhatIf
+        Shows what would happen if the command runs without actually executing it.
+
+    .PARAMETER Confirm
+        Prompts for confirmation before executing the command.
+
+    .EXAMPLE
+        Export-MediaStream -InputPath 'video.mp4' -OutputPath 'audio.raw' -Type Audio -Index 0
+        Extracts the first audio stream from 'video.mp4' and saves it as 'audio.raw'.
+
+    .EXAMPLE
+        Export-MediaStream -InputPath 'video.mp4' -OutputPath 'video_stream.h264' -Type Video -Index 0
+        Extracts the first video stream from 'video.mp4' and saves it as 'video_stream.h264'.
+
+    .EXAMPLE
+        Export-MediaStream -InputPath 'video.mp4' -OutputPath 'subtitle.ass' -Type Subtitle -Index 0
+        Extracts the first subtitle stream from 'video.mp4' and saves it as 'subtitle.ass'.
+
+    .EXAMPLE
+        Export-MediaStream -InputPath 'video.mp4' -OutputPath 'stream_2.raw' -Type Data -Index 2 -Force
+        Extracts the third data stream from 'video.mp4' and saves it as 'stream_2.raw', overwriting if it exists.
+
+    .OUTPUTS
+        None. Creates a file at the specified OutputPath.
+
+    .NOTES
+        This function requires ffmpeg to be installed and available in the system PATH.
+        The output file will contain the media stream data with container formatting.
+        Valid stream types are defined in the StreamType enum: Audio, Video, Subtitle, and Data.
+    #>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
+    param (
+        [Parameter(Mandatory, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string]$InputPath,
+        
+        [Parameter(Mandatory, Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [string]$OutputPath,
+        
+        [Parameter(Mandatory, Position = 2)]
+        [StreamType]$Type,
+        
+        [Parameter(Mandatory, Position = 3)]
+        [ValidateRange(0, [int]::MaxValue)]
+        [int]$Index,
         
         [Parameter(Mandatory = $false)]
-        [string]$OutputPath
+        [switch]$Force
     )
+
+    Write-Verbose "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
+
+    # Resolve and validate input path
+    try {
+        $InputPath = Resolve-Path $InputPath -ErrorAction Stop
+    }
+    catch {
+        Write-Error "Input file not found: $InputPath" -ErrorAction Stop
+    }
+
+    # Resolve output path relative to current working directory
+    if ([System.IO.Path]::IsPathRooted($OutputPath)) {
+        # Absolute path - use as is
+        $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
+    } else {
+        # Relative path - resolve relative to current working directory
+        $OutputPath = Join-Path (Get-Location) $OutputPath
+        $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
+    }
+
+    # Create output directory if it doesn't exist
+    $outputDir = Split-Path $OutputPath -Parent
+    if ($outputDir -and -not (Test-Path $outputDir)) {
+        if ($PSCmdlet.ShouldProcess($outputDir, "Create directory")) {
+            New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+        }
+    }
+
+    # Check if output file exists and handle Force parameter
+    if (Test-Path $OutputPath) {
+        if (-not $Force) {
+            Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite." -ErrorAction Stop
+        }
+    }
+
     
-    # TODO: Implement media stream export functionality
-    Write-Verbose "Export-MediaStream: Stub function - not yet implemented"
-    Write-Host "Export-MediaStream function is a stub and not yet implemented."
-} 
+    # Build ffmpeg arguments
+    # Should result in call to ffmpeg with argments: -i input.mkv -y -map 0:s:0 -c copy output.sup
+    
+    # Stream type mapping
+    $streamFilter = switch ($Type) {
+        'Audio' { 'a' }
+        'Video' { 'v' }
+        'Subtitle' { 's' }
+        'Data' { 'd' }
+        default { throw "Unsupported stream type: $Type" }
+    }
+    
+    $ffmpegArgs = @(
+        '-i', $InputPath,
+        '-y',  # Overwrite output files
+        '-map', "0:$($streamFilter):$Index",
+        '-c', 'copy',
+        $OutputPath
+    )
+
+    $operation = "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
+    
+    if ($WhatIfPreference) {
+        Write-Host "What if: $operation"
+        Write-Host "Command: ffmpeg $($ffmpegArgs -join ' ')"
+        return
+    }
+
+    if ($PSCmdlet.ShouldProcess($OutputPath, $operation)) {
+        try {
+            Write-Progress -Activity "Exporting Media Stream" -Status "Processing $InputPath" -PercentComplete 0
+            
+            Write-Verbose "Executing: ffmpeg $($ffmpegArgs -join ' ')"
+            
+            Invoke-FFMpeg $ffmpegArgs
+            
+            Write-Progress -Activity "Exporting Media Stream" -Status "Complete" -PercentComplete 100
+            Write-Verbose "Successfully exported stream to: $OutputPath"
+        }
+        catch {
+            Write-Progress -Activity "Exporting Media Stream" -Completed
+            Write-Error "Failed to extract stream: $($_.Exception.Message)" -ErrorAction Stop
+        }
+    }
+}
