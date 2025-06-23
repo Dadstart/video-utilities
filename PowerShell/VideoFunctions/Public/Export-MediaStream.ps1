@@ -3,6 +3,7 @@ enum StreamType {
     Audio
     Video
     Subtitle
+    None
 }
 
 function Export-MediaStream {
@@ -13,7 +14,7 @@ function Export-MediaStream {
     .DESCRIPTION
         This function uses ffmpeg to extract a specific stream from a media file
         and outputs it as a raw stream file. The stream can be filtered by type
-        (Audio, Video, Subtitle, Data) and selected by index.
+        (Audio, Video, Subtitle, Data, None) and selected by index.
 
     .PARAMETER InputPath
         Path to the input media file.
@@ -22,10 +23,12 @@ function Export-MediaStream {
         Path where the raw stream file will be saved.
 
     .PARAMETER Type
-        Type of stream to filter by. Must be one of: Audio, Video, Subtitle, or Data.
+        Type of stream to filter by. Must be one of: Audio, Video, Subtitle, Data, or None.
 
     .PARAMETER Index
-        Zero-based index of the stream to extract (after type filtering).
+        Zero-based index of the stream to extract. When Type is specified (Audio, Video, etc.),
+        this is the index within that stream type. When Type is None, this is the absolute
+        stream index regardless of type.
 
     .PARAMETER Force
         Overwrites the output file if it already exists.
@@ -56,13 +59,18 @@ function Export-MediaStream {
         Get-ChildItem -Filter "*.mp4" | Export-MediaStream -OutputPath "audio.aac" -Type Audio -Index 0
         Extracts the first audio stream from all MP4 files in the current directory and saves them as "audio.aac".
 
+    .EXAMPLE
+        Export-MediaStream -InputPath 'video.mp4' -OutputPath 'stream_3.raw' -Type None -Index 3
+        Extracts the fourth stream (absolute index 3) from 'video.mp4' regardless of its type and saves it as 'stream_3.raw'.
+
     .OUTPUTS
         None. Creates a file at the specified OutputPath.
 
     .NOTES
         This function requires ffmpeg to be installed and available in the system PATH.
         The output file will contain the media stream data with container formatting.
-        Valid stream types are defined in the StreamType enum: Audio, Video, Subtitle, and Data.
+        Valid stream types are defined in the StreamType enum: Audio, Video, Subtitle, Data, and None.
+        When Type is None, the Index parameter refers to the absolute stream index (0-based) regardless of stream type.
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType([void])]
@@ -130,20 +138,25 @@ function Export-MediaStream {
     
     # Build ffmpeg arguments
     # Should result in call to ffmpeg with argments: -i input.mkv -y -map 0:s:0 -c copy output.sup
-    
-    # Stream type mapping
-    $streamFilter = switch ($Type) {
-        'Audio' { 'a' }
-        'Video' { 'v' }
-        'Subtitle' { 's' }
-        'Data' { 'd' }
-        default { Write-Error "Unsupported stream type: $Type" -ErrorAction Stop }
+        
+    if ($Type -eq 'None') {
+        $mapValue = "0:$Index"
+    } else {
+        # Stream type mapping
+        $streamFilter = switch ($Type) {
+            'Audio' { 'a' }
+            'Video' { 'v' }
+            'Subtitle' { 's' }
+            'Data' { 'd' }
+            default { Write-Error "Unsupported stream type: $Type" -ErrorAction Stop }
+        }
+        $mapValue = "0:$($streamFilter):$Index";
     }
-    
+
     $ffmpegArgs = @(
         '-i', $InputPath,
         '-y',  # Overwrite output files
-        '-map', "0:$($streamFilter):$Index",
+        '-map', $mapValue,
         '-c', 'copy',
         $OutputPath
     )
