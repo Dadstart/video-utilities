@@ -1,4 +1,4 @@
-function Add-PlexFolders {
+function Add-PlexFolder {
     <#
     .SYNOPSIS
         Adds Plex folders for bonus content.

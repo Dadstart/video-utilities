@@ -1,4 +1,4 @@
-function Invoke-PlexFileOperations {
+function Invoke-PlexFileOperation {
     <#
     .SYNOPSIS
         Invokes all Plex file and folder operations.
@@ -10,7 +10,7 @@ function Invoke-PlexFileOperations {
         Destination path of the Plex bonus content files.
 
     .EXAMPLE
-        Invoke-PlexFileOperations 'C:\plex\movies\My Movie'
+        Invoke-PlexFileOperation 'C:\plex\movies\My Movie'
 
         Executes the following commands:
         - Add-PlexFolders $Destination
@@ -40,9 +40,9 @@ function Invoke-PlexFileOperations {
             Write-Error "Destination folder does not exist" -ErrorAction Stop
         }
 
-        Add-PlexFolders $Destination
-        Move-PlexFiles $Destination
-        Remove-PlexEmptyFolders $Destination
+        Add-PlexFolder $Destination
+        Move-PlexFile $Destination
+        Remove-PlexEmptyFolder $Destination
         return
     }
     catch {

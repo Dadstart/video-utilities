@@ -1,4 +1,4 @@
-function Remove-PlexEmptyFolders {
+function Remove-PlexEmptyFolder {
     <#
     .SYNOPSIS
         Removes empty Plex folders for bonus content.
@@ -10,7 +10,7 @@ function Remove-PlexEmptyFolders {
         Destination path where the Plex folders exist.
 
     .EXAMPLE
-        Remove-PlexEmptyFolders 'C:\plex\movies\My Movie'
+        Remove-PlexEmptyFolder 'C:\plex\movies\My Movie'
 
         Removes the folder 'C:\plex\movies\My Movie\Behind The Scenes' if it is empty
         Removes the folder 'C:\plex\movies\My Movie\Deleted Scenes' if it is empty

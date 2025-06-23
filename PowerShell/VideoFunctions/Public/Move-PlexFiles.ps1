@@ -1,4 +1,4 @@
-function Move-PlexFiles {
+function Move-PlexFile {
     <#
     .SYNOPSIS
         Moves bonus content to Plex folders.
@@ -10,7 +10,7 @@ function Move-PlexFiles {
         Destination path where the bonus content should be moved.
 
     .EXAMPLE
-        Move-PlexFiles 'C:\plex\movies\My Movie'
+        Move-PlexFile 'C:\plex\movies\My Movie'
 
         Moves *-behindthescenes.* to 'C:\plex\movies\My Movie\Behind The Scenes'
         Moves *-deleted.* to 'C:\plex\movies\My Movie\Deleted Scenes'

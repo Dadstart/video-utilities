@@ -19,7 +19,7 @@
         }
 
         PSUseSingularNouns = @{
-            Enable = $true
+            Enable = $false
         }
 
         # Output and Logging
@@ -67,18 +67,20 @@
         PSUseCompatibleCommands = @{
             Enable = $true
             TargetProfiles = @(
-                'core-6.0.0',
-                'desktop-5.1.0',
-                'win-5.1.0'
+                'ubuntu_x64_18.04_7.0.0_x64_3.1.2_core',
+                'win-4_x64_10.0.18362.0_7.0.0_x64_3.1.2_core'
+                'win-8_x64_10.0.14393.0_7.0.0_x64_3.1.2_core'
+                'win-8_x64_10.0.17763.0_7.0.0_x64_3.1.2_core'
             )
         }
 
         PSUseCompatibleSyntax = @{
             Enable = $true
             TargetProfiles = @(
-                'core-6.0.0',
-                'desktop-5.1.0',
-                'win-5.1.0'
+                'ubuntu_x64_18.04_7.0.0_x64_3.1.2_core',
+                'win-4_x64_10.0.18362.0_7.0.0_x64_3.1.2_core'
+                'win-8_x64_10.0.14393.0_7.0.0_x64_3.1.2_core'
+                'win-8_x64_10.0.17763.0_7.0.0_x64_3.1.2_core'
             )
         }
 

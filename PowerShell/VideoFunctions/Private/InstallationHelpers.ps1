@@ -45,8 +45,7 @@ function Write-InstallationMessage {
     param(
         [string]$Message,
         [string]$Type = 'Info',
-        [VerbosityLevel]$VerbosityLevel = [VerbosityLevel]::All,
-        [string]$ScriptName = 'Installation'
+        [VerbosityLevel]$VerbosityLevel = [VerbosityLevel]::All
     )
 
     # Check if message should be displayed based on verbosity level
@@ -66,10 +65,10 @@ function Write-InstallationMessage {
 
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     switch ($Type) {
-        'Info'    { Write-Host "[$timestamp] INFO: $Message" -ForegroundColor Cyan }
-        'Success' { Write-Host "[$timestamp] SUCCESS: $Message" -ForegroundColor Green }
-        'Warning' { Write-Host "[$timestamp] WARNING: $Message" -ForegroundColor Yellow }
-        'Error'   { Write-Host "[$timestamp] ERROR: $Message" -ForegroundColor Red }
+        'Info'    { Write-Information "[$timestamp] INFO: $Message" }
+        'Success' { Write-Information "[$timestamp] SUCCESS: $Message" }
+        'Warning' { Write-Warning "[$timestamp] WARNING: $Message" }
+        'Error'   { Write-Error "[$timestamp] ERROR: $Message" }
     }
 }
 
@@ -107,7 +106,7 @@ function Get-ModuleInstallPath {
     }
 }
 
-function Get-ModulePaths {
+function Get-ModulePath {
     <#
     .SYNOPSIS
         Gets all possible module paths for VideoFunctions based on scope.
@@ -161,7 +160,7 @@ function Test-ModuleStructure {
     # Check for required files
     foreach ($file in $requiredFiles) {
         if (-not (Test-Path $file)) {
-            Write-InstallationMessage "Required file '$file' not found in current directory." 'Error' $VerbosityLevel
+            Write-InstallationMessage -Message "Required file '$file' not found in current directory." -Type 'Error' -VerbosityLevel $VerbosityLevel
             return $false
         }
     }
@@ -169,7 +168,7 @@ function Test-ModuleStructure {
     # Check for required directories
     foreach ($dir in $requiredDirectories) {
         if (-not (Test-Path $dir)) {
-            Write-InstallationMessage "Required directory '$dir' not found in current directory." 'Error' $VerbosityLevel
+            Write-InstallationMessage -Message "Required directory '$dir' not found in current directory." -Type 'Error' -VerbosityLevel $VerbosityLevel
             return $false
         }
     }
@@ -177,7 +176,7 @@ function Test-ModuleStructure {
     # Check for at least one function file in Public directory
     $publicFunctions = Get-ChildItem -Path 'Public' -Filter '*.ps1' -ErrorAction SilentlyContinue
     if ($publicFunctions.Count -eq 0) {
-        Write-InstallationMessage "No function files found in Public directory." 'Error' $VerbosityLevel
+        Write-InstallationMessage -Message "No function files found in Public directory." -Type 'Error' -VerbosityLevel $VerbosityLevel
         return $false
     }
 
@@ -198,7 +197,7 @@ function Get-ModuleVersion {
         return $manifest.ModuleVersion
     }
     catch {
-        Write-InstallationMessage "Failed to read module version from manifest: $($_.Exception.Message)" 'Warning' $VerbosityLevel
+        Write-InstallationMessage -Message "Failed to read module version from manifest: $($_.Exception.Message)" -Type 'Warning' -VerbosityLevel $VerbosityLevel
         return 'Unknown'
     }
 }
@@ -212,7 +211,7 @@ function Test-ModuleInstalled {
         [string]$Scope
     )
 
-    $modulePaths = Get-ModulePaths -Scope $Scope
+    $modulePaths = Get-ModulePath -Scope $Scope
     $installedPaths = @()
 
     foreach ($path in $modulePaths) {
@@ -246,7 +245,7 @@ function Get-ModuleInfo {
         }
     }
     catch {
-        Write-InstallationMessage "Failed to read module info from $ModulePath`: $($_.Exception.Message)" 'Warning' $VerbosityLevel
+        Write-InstallationMessage -Message "Failed to read module info from $ModulePath`: $($_.Exception.Message)" -Type 'Warning' -VerbosityLevel $VerbosityLevel
     }
 
     return @{
@@ -280,7 +279,7 @@ function Find-VideoFunctionsDirectory {
     return $null
 }
 
-function Build-UninstallParameters {
+function Build-UninstallParameter {
     <#
     .SYNOPSIS
         Builds the parameter hashtable for the uninstall script.
@@ -318,7 +317,7 @@ function Build-UninstallParameters {
     return $params
 }
 
-function Build-InstallParameters {
+function Build-InstallParameter {
     <#
     .SYNOPSIS
         Builds the parameter hashtable for the install script.
@@ -361,14 +360,14 @@ Export-ModuleMember -Function @(
     'Write-InstallationMessage',
     'Test-Administrator',
     'Get-ModuleInstallPath',
-    'Get-ModulePaths',
+    'Get-ModulePath',
     'Test-ModuleStructure',
     'Get-ModuleVersion',
     'Test-ModuleInstalled',
     'Get-ModuleInfo',
     'Find-VideoFunctionsDirectory',
-    'Build-UninstallParameters',
-    'Build-InstallParameters'
+    'Build-UninstallParameter',
+    'Build-InstallParameter'
 ) -Variable @(
     'InstallScope',
     'UninstallScope',
