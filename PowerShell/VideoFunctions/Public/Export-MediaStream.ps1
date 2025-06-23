@@ -52,6 +52,10 @@ function Export-MediaStream {
         Export-MediaStream -InputPath 'video.mp4' -OutputPath 'stream_2.raw' -Type Data -Index 2 -Force
         Extracts the third data stream from 'video.mp4' and saves it as 'stream_2.raw', overwriting if it exists.
 
+    .EXAMPLE
+        Get-ChildItem -Filter "*.mp4" | Export-MediaStream -OutputPath "audio.aac" -Type Audio -Index 0
+        Extracts the first audio stream from all MP4 files in the current directory and saves them as "audio.aac".
+
     .OUTPUTS
         None. Creates a file at the specified OutputPath.
 
@@ -63,7 +67,7 @@ function Export-MediaStream {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType([void])]
     param (
-        [Parameter(Mandatory, Position = 0)]
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string]$InputPath,
         
