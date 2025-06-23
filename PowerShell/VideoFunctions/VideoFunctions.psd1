@@ -73,15 +73,23 @@ FunctionsToExport = @(
     # FFMpeg
     'Get-FFMpegVersion',
     'Invoke-FFProbe',
+    
+    # Media
+    'Get-MediaStream',
+    'Get-MediaStreams',
+    'Export-MediaStreamContent',
 
     # Mkv
     'Get-MkvTrack',
     'Get-MkvTracks',
     'Get-MkvTrackAll',
 
+<<<<<<< HEAD
     # Mpeg
     'Get-MpegStreams',
 
+=======
+>>>>>>> a150dcb (Rename Get-MpegStream* to Get-MediaStream*)
     # Plex
     'Add-PlexFolders', 
     'Move-PlexFiles',

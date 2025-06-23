@@ -5,7 +5,7 @@ enum StreamType {
     Subtitle
 }
 
-function Get-MpegStreams {
+function Get-MediaStreams {
     <#
     .SYNOPSIS
         Retrieves an array of streams from a media file.
@@ -25,19 +25,19 @@ function Get-MpegStreams {
         Language code to filter streams (e.g., 'eng' for English).
 
     .EXAMPLE
-        Get-MpegStreams 'example.mp4' -Type Audio -Language 'eng'
+        Get-MediaStreams 'example.mp4' -Type Audio -Language 'eng'
         # Retrieves all English audio streams from 'example.mp4'.
 
     .EXAMPLE
-        Get-MpegStreams 'example.mp4' -Type Video
+        Get-MediaStreams 'example.mp4' -Type Video
         # Retrieves all video streams from 'example.mp4'.
 
     .EXAMPLE
-        Get-MpegStreams 'example.mp4' -Type Subtitle -Language 'eng'
+        Get-MediaStreams 'example.mp4' -Type Subtitle -Language 'eng'
         # Retrieves all English subtitle streams from 'example.mp4'.
 
     .EXAMPLE
-        Get-MpegStreams 'example.mp4'
+        Get-MediaStreams 'example.mp4'
         # Retrieves all streams from 'example.mp4' with no filtering.
 
     .OUTPUTS
