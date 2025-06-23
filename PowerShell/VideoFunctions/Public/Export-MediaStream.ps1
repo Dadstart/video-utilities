@@ -61,6 +61,7 @@ function Export-MediaStream {
         Valid stream types are defined in the StreamType enum: Audio, Video, Subtitle, and Data.
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory, Position = 0)]
         [ValidateNotNullOrEmpty()]
@@ -71,13 +72,14 @@ function Export-MediaStream {
         [string]$OutputPath,
         
         [Parameter(Mandatory, Position = 2)]
+        [ValidateNotNull()]
         [StreamType]$Type,
         
         [Parameter(Mandatory, Position = 3)]
         [ValidateRange(0, [int]::MaxValue)]
         [int]$Index,
         
-        [Parameter(Mandatory = $false)]
+        [Parameter]
         [switch]$Force
     )
 
@@ -86,6 +88,7 @@ function Export-MediaStream {
     # Resolve and validate input path
     try {
         $InputPath = Resolve-Path $InputPath -ErrorAction Stop
+        Write-Verbose "Input path resolved: $InputPath"
     }
     catch {
         Write-Error "Input file not found: $InputPath" -ErrorAction Stop
@@ -100,10 +103,12 @@ function Export-MediaStream {
         $OutputPath = Join-Path (Get-Location) $OutputPath
         $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
     }
+    Write-Verbose "Output path resolved: $OutputPath"
 
     # Create output directory if it doesn't exist
     $outputDir = Split-Path $OutputPath -Parent
     if ($outputDir -and -not (Test-Path $outputDir)) {
+        Write-Verbose "Creating output directory: $outputDir"
         if ($PSCmdlet.ShouldProcess($outputDir, "Create directory")) {
             New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
         }
@@ -113,6 +118,8 @@ function Export-MediaStream {
     if (Test-Path $OutputPath) {
         if (-not $Force) {
             Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite." -ErrorAction Stop
+        } else {
+            Write-Verbose "Overwriting existing file: $OutputPath"
         }
     }
 
@@ -126,7 +133,7 @@ function Export-MediaStream {
         'Video' { 'v' }
         'Subtitle' { 's' }
         'Data' { 'd' }
-        default { throw "Unsupported stream type: $Type" }
+        default { Write-Error "Unsupported stream type: $Type" -ErrorAction Stop }
     }
     
     $ffmpegArgs = @(
@@ -136,6 +143,7 @@ function Export-MediaStream {
         '-c', 'copy',
         $OutputPath
     )
+    Write-Verbose "FFmpeg command: ffmpeg $($ffmpegArgs -join ' ')"
 
     $operation = "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
     
