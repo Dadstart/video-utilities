@@ -43,6 +43,9 @@ function Get-MkvTracks {
         [string]$Extension
     )
 
+    # Check if mkvextract is installed
+    Test-MkvExtractInstalled -Throw | Out-Null
+
     foreach ($track in $Tracks) {
         $finalExtension = "$track.$Extension"
         Get-MkvTrack $Name $track $finalExtension

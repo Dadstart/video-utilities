@@ -42,6 +42,9 @@ function Get-MkvTrack {
         [string]$Extension
     )
 
+    # Check if mkvextract is installed
+    Test-MkvExtractInstalled -Throw | Out-Null
+
     if ($Name.EndsWith(".mkv")) { 
         $Name = $Name.Substring(0, $Name.Length - 4) 
     }
