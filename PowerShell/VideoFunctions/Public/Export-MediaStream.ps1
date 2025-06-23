@@ -150,7 +150,7 @@ function Export-MediaStream {
             'Data' { 'd' }
             default { Write-Error "Unsupported stream type: $Type" -ErrorAction Stop }
         }
-        $mapValue = "0:$($streamFilter):$Index";
+        $mapValue = "0:$($streamFilter):$Index"
     }
 
     $ffmpegArgs = @(
