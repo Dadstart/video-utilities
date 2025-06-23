@@ -11,60 +11,95 @@ function Get-MpegStreams {
         Retrieves an array of streams from a media file.
 
     .DESCRIPTION
-        This function takes a media input file and scans and returns all streams
-        within the file. If a type is provided, it filters the streams based on the
-        specified type. If a language code is provided, it filters the streams
-        based on the specified language.
+        Scans a media file and returns all streams (audio, video, subtitle, etc).
+        Optionally filters by stream type and/or language code.
 
-    .PARAMETER Name
-        Media file path.
+    .PARAMETER Path
+        Path to the media file.
 
     .PARAMETER Type
-        Type of stream to retrieve (e.g., 'Audio', 'Video', 'Subtitle'). Default is 'All'.
+        Type of stream to retrieve ('Audio', 'Video', 'Subtitle', or 'All').
+        Default is 'All'.
 
     .PARAMETER Language
         Language code to filter streams (e.g., 'eng' for English).
 
     .EXAMPLE
         Get-MpegStreams 'example.mp4' -Type Audio -Language 'eng'
-        Retrieves all audio streams from 'example.mp4' that are in English.
-    
+        # Retrieves all English audio streams from 'example.mp4'.
+
     .EXAMPLE
         Get-MpegStreams 'example.mp4' -Type Video
-        Retrieves all video streams from 'example.mp4'.
+        # Retrieves all video streams from 'example.mp4'.
 
     .EXAMPLE
         Get-MpegStreams 'example.mp4' -Type Subtitle -Language 'eng'
-        Retrieves all subtitle streams from 'example.mp4' that are in English.
+        # Retrieves all English subtitle streams from 'example.mp4'.
 
     .EXAMPLE
         Get-MpegStreams 'example.mp4'
-        Retrieves all streams from 'example.mp4' without filtering by type or language.
+        # Retrieves all streams from 'example.mp4' with no filtering.
 
     .OUTPUTS
-        [System.Object[]]
-        Returns an array of streams filtered by type and language.
+        [System.Object[]] Array of stream objects, each with stream index,
+        type, and language info.
 
     .NOTES
-        This function requires ffmpeg to be installed and available in the system PATH.
+        Requires ffmpeg/ffprobe to be installed and available in the system PATH.
     #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
-        [string]$Name,
-        [Parameter(Mandatory = $false, Position = 1)]
+        [string]$Path,
+        [Parameter(Position = 1)]
         [StreamType]$Type = [StreamType]::All,
-        [Parameter(Mandatory = $false)]
-        [string]$Language = $null
+        [Parameter()]
+        [string]$Language
     )
 
-    $allStreams = Invoke-FFProbe '-show_streams', $Name
-    $matchingStreams = $allStreams.streams | Where-Object { 
-        (($Type -eq [StreamType]::All) -or ($_.codec_type -eq $Type.ToString().ToLowerInvariant())) `
-        -and `
-        ((-not $Language) -or ($_.tags.language -eq $Language))
+    # Validate the file path before proceeding
+    if (-not (Test-Path -Path $Path -PathType Leaf)) {
+        throw "The file path '$Path' does not exist or is not a valid file."
     }
-    
-    Write-Verbose "Found $($matchingStreams.Count) streams in $Name with language code '$Language'."
-    return $matchingStreams
-} 
+
+    # Get all streams from the file using ffprobe
+    $ffprobeResult = Invoke-FFProbe '-show_streams', $Path
+    $streams = $ffprobeResult.streams
+
+    # Return an empty array if no streams are found
+    if (-not $streams) {
+        Write-Verbose "No streams found in file '$Path'."
+        return @()
+    }
+
+    # Prepare to collect filtered streams
+    $filteredStreams = [System.Collections.ArrayList]::new()
+    $streamTypeString = $Type.ToString().ToLowerInvariant()
+
+    for ($i = 0; $i -lt $streams.Count; $i++) {
+        $stream = $streams[$i]
+
+        # Check if the stream matches the requested type and language
+        $matchesType = ($Type -eq [StreamType]::All) -or ($stream.codec_type -eq $streamTypeString)
+        $matchesLanguage = (-not $Language) -or ($stream.tags.language -eq $Language)
+
+        if ($matchesType -and $matchesLanguage) {
+            # Build a custom object for each matching stream
+            $streamObj = [PSCustomObject]@{
+                Index       = $stream.index
+                CodecType   = $stream.codec_type
+                TypeIndex   = if ($Type -ne [StreamType]::All) { $filteredStreams.Count } else { $null }
+                CodecName   = $stream.codec_name
+                Language    = $stream.tags.language
+                Disposition = $stream.disposition
+                Tags        = $stream.tags
+                # Convert the stream to a JSON object and back to a PSObject to deep copy the object
+                Stream      = $stream | ConvertTo-Json | ConvertFrom-Json
+            }
+            $filteredStreams.Add($streamObj) | Out-Null
+        }
+    }
+
+    # Return the array of filtered stream objects
+    return , $filteredStreams.ToArray()
+}
