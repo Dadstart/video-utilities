@@ -33,7 +33,7 @@ function Add-PlexFolders {
     )
 
     if (-not (Test-Path -Path $Destination)) {
-        throw "Destination folder does not exist"
+        Write-Error "Destination folder does not exist" -ErrorAction Stop
     }
 
     $plexLayout = @{
@@ -54,5 +54,5 @@ function Add-PlexFolders {
         }
     }
 
-    Write-Host "Plex folders created" -ForegroundColor Blue
-} 
+    Write-Information "Plex folders created" -InformationAction Continue
+}

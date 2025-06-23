@@ -33,7 +33,7 @@ function Move-PlexFiles {
     )
 
     if (-not (Test-Path -Path $Destination)) {
-        throw "Destination folder does not exist"
+        Write-Error "Destination folder does not exist" -ErrorAction Stop
     }
 
     $plexLayout = @{
@@ -47,15 +47,21 @@ function Move-PlexFiles {
         'Other'             = 'other'
     }
 
+    $filesMoved = 0
     foreach ($folder in $plexLayout.Keys) {
         $fileSuffix = $plexLayout[$folder]
         $destFiles = (Get-ChildItem -Recurse "*-$fileSuffix.mp4") + (Get-ChildItem -Recurse "*-$fileSuffix.srt")
         $destFolder = Join-Path -Path $Destination -ChildPath $folder
-        Write-Host "Moving -$fileSuffix to $destFolder"
+        Write-Output "Moving -$fileSuffix to $destFolder"
         foreach ($destFile in $destFiles) {
             Move-Item $destFile.Name "$destFolder"
+            $filesMoved++
         }
     }
 
-    Write-Host "Files moved to Plex folders" -ForegroundColor Blue
-} 
+    if ($filesMoved -eq 0) {
+        Write-Warning "No bonus content files found to move in current directory"
+    } else {
+        Write-Information "$filesMoved files moved to Plex folders" -InformationAction Continue
+    }
+}

@@ -28,7 +28,7 @@ function Get-MediaStream {
     .EXAMPLE
         Get-MediaStream 'example.mp4' -Index 0
         Retrieves the first stream (index 0) from 'example.mp4'.
-    
+
     .EXAMPLE
         Get-MediaStream 'example.mp4' -Index 2 -Type Video
         Retrieves the third video stream (index 2) from 'example.mp4'.
@@ -72,4 +72,4 @@ function Get-MediaStream {
     $stream = $streams.streams[0]
     Write-Verbose "Retrieved $Type stream at index $Index from $Name (type: $($stream.codec_type))."
     return $stream
-} 
+}

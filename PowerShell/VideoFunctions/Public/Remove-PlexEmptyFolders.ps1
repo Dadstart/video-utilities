@@ -25,7 +25,7 @@ function Remove-PlexEmptyFolders {
     .NOTES
         This function only removes Plex bonus content folders that are completely empty.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
@@ -33,7 +33,7 @@ function Remove-PlexEmptyFolders {
     )
 
     if (-not (Test-Path -Path $Destination)) {
-        throw "Destination folder does not exist"
+        Write-Error "Destination folder does not exist" -ErrorAction Stop
     }
 
     $plexLayout = @{
@@ -56,10 +56,16 @@ function Remove-PlexEmptyFolders {
         }
 
         if ((Get-ChildItem $path).Count -eq 0) {
-            $foldersDeleted++
-            Remove-Item -Path $path
+            if ($PSCmdlet.ShouldProcess($path, "Remove empty folder")) {
+                $foldersDeleted++
+                Remove-Item -Path $path
+            }
         }
     }
 
-    Write-Host "$foldersDeleted empty Plex folders deleted" -ForegroundColor Blue
-} 
+    if ($foldersDeleted -eq 0) {
+        Write-Warning "No empty Plex folders found to remove in '$Destination'"
+    } else {
+        Write-Information "$foldersDeleted empty Plex folders deleted" -InformationAction Continue
+    }
+}

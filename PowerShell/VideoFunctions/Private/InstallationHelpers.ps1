@@ -29,16 +29,16 @@ function Write-InstallationMessage {
     <#
     .SYNOPSIS
         Writes installation-related messages with verbosity control.
-    
+
     .PARAMETER Message
         The message to display.
-    
+
     .PARAMETER Type
         The type of message (Info, Success, Warning, Error).
-    
+
     .PARAMETER VerbosityLevel
         The current verbosity level setting.
-    
+
     .PARAMETER ScriptName
         The name of the calling script for timestamp formatting.
     #>
@@ -48,7 +48,7 @@ function Write-InstallationMessage {
         [VerbosityLevel]$VerbosityLevel = [VerbosityLevel]::All,
         [string]$ScriptName = 'Installation'
     )
-    
+
     # Check if message should be displayed based on verbosity level
     $shouldDisplay = switch ($VerbosityLevel) {
         'Silent'   { $Type -eq 'Error' }
@@ -59,11 +59,11 @@ function Write-InstallationMessage {
         'All'      { $true }
         default    { $true }
     }
-    
+
     if (-not $shouldDisplay) {
         return
     }
-    
+
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     switch ($Type) {
         'Info'    { Write-Host "[$timestamp] INFO: $Message" -ForegroundColor Cyan }
@@ -91,7 +91,7 @@ function Get-ModuleInstallPath {
     param(
         [string]$Scope
     )
-    
+
     if ($Scope -eq 'AllUsers') {
         if ($PSVersionTable.PSEdition -eq 'Core') {
             return "$env:ProgramFiles\PowerShell\Modules"
@@ -115,9 +115,9 @@ function Get-ModulePaths {
     param(
         [string]$Scope
     )
-    
+
     $paths = @()
-    
+
     # Current User paths
     if ($Scope -in @('CurrentUser', 'All')) {
         if ($PSVersionTable.PSEdition -eq 'Core') {
@@ -126,7 +126,7 @@ function Get-ModulePaths {
             $paths += "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\VideoFunctions"
         }
     }
-    
+
     # All Users paths
     if ($Scope -in @('AllUsers', 'All')) {
         if ($PSVersionTable.PSEdition -eq 'Core') {
@@ -135,7 +135,7 @@ function Get-ModulePaths {
             $paths += "$env:ProgramFiles\WindowsPowerShell\Modules\VideoFunctions"
         }
     }
-    
+
     return $paths
 }
 
@@ -147,17 +147,17 @@ function Test-ModuleStructure {
     param(
         [VerbosityLevel]$VerbosityLevel = [VerbosityLevel]::All
     )
-    
+
     $requiredFiles = @(
         'VideoFunctions.psd1',
         'VideoFunctions.psm1'
     )
-    
+
     $requiredDirectories = @(
         'Public',
         'Private'
     )
-    
+
     # Check for required files
     foreach ($file in $requiredFiles) {
         if (-not (Test-Path $file)) {
@@ -165,7 +165,7 @@ function Test-ModuleStructure {
             return $false
         }
     }
-    
+
     # Check for required directories
     foreach ($dir in $requiredDirectories) {
         if (-not (Test-Path $dir)) {
@@ -173,14 +173,14 @@ function Test-ModuleStructure {
             return $false
         }
     }
-    
+
     # Check for at least one function file in Public directory
     $publicFunctions = Get-ChildItem -Path 'Public' -Filter '*.ps1' -ErrorAction SilentlyContinue
     if ($publicFunctions.Count -eq 0) {
         Write-InstallationMessage "No function files found in Public directory." 'Error' $VerbosityLevel
         return $false
     }
-    
+
     return $true
 }
 
@@ -192,7 +192,7 @@ function Get-ModuleVersion {
     param(
         [VerbosityLevel]$VerbosityLevel = [VerbosityLevel]::All
     )
-    
+
     try {
         $manifest = Import-PowerShellDataFile -Path 'VideoFunctions.psd1'
         return $manifest.ModuleVersion
@@ -211,16 +211,16 @@ function Test-ModuleInstalled {
     param(
         [string]$Scope
     )
-    
+
     $modulePaths = Get-ModulePaths -Scope $Scope
     $installedPaths = @()
-    
+
     foreach ($path in $modulePaths) {
         if (Test-Path $path) {
             $installedPaths += $path
         }
     }
-    
+
     return $installedPaths
 }
 
@@ -233,7 +233,7 @@ function Get-ModuleInfo {
         [string]$ModulePath,
         [VerbosityLevel]$VerbosityLevel = [VerbosityLevel]::All
     )
-    
+
     try {
         $manifestPath = Join-Path $ModulePath 'VideoFunctions.psd1'
         if (Test-Path $manifestPath) {
@@ -248,7 +248,7 @@ function Get-ModuleInfo {
     catch {
         Write-InstallationMessage "Failed to read module info from $ModulePath`: $($_.Exception.Message)" 'Warning' $VerbosityLevel
     }
-    
+
     return @{
         Version = 'Unknown'
         Author = 'Unknown'
@@ -270,13 +270,13 @@ function Find-VideoFunctionsDirectory {
         "$env:ProgramFiles\PowerShell\Modules\VideoFunctions",
         "$env:ProgramFiles\WindowsPowerShell\Modules\VideoFunctions"
     )
-    
+
     foreach ($path in $searchPaths) {
         if (Test-Path (Join-Path $path 'VideoFunctions.psd1')) {
             return $path
         }
     }
-    
+
     return $null
 }
 
@@ -292,29 +292,29 @@ function Build-UninstallParameters {
         [bool]$WhatIfPreference,
         [string]$ConfirmPreference
     )
-    
+
     $params = @{}
-    
+
     if ($Scope -ne 'All') {
         $params['Scope'] = $Scope
     }
-    
+
     if ($Force) {
         $params['Force'] = $true
     }
-    
+
     if ($Verbosity -ne 'All') {
         $params['Verbosity'] = $Verbosity
     }
-    
+
     if ($WhatIfPreference) {
         $params['WhatIf'] = $true
     }
-    
+
     if ($ConfirmPreference -eq 'None') {
         $params['Confirm'] = $false
     }
-    
+
     return $params
 }
 
@@ -330,29 +330,29 @@ function Build-InstallParameters {
         [bool]$WhatIfPreference,
         [string]$ConfirmPreference
     )
-    
+
     $params = @{}
-    
+
     # For install, use CurrentUser if Scope is All, otherwise use the specified scope
     $installScope = if ($Scope -eq 'All') { 'CurrentUser' } else { $Scope }
     $params['Scope'] = $installScope
-    
+
     if ($Force) {
         $params['Force'] = $true
     }
-    
+
     if ($Verbosity -ne 'All') {
         $params['Verbosity'] = $Verbosity
     }
-    
+
     if ($WhatIfPreference) {
         $params['WhatIf'] = $true
     }
-    
+
     if ($ConfirmPreference -eq 'None') {
         $params['Confirm'] = $false
     }
-    
+
     return $params
 }
 
@@ -371,7 +371,7 @@ Export-ModuleMember -Function @(
     'Build-InstallParameters'
 ) -Variable @(
     'InstallScope',
-    'UninstallScope', 
+    'UninstallScope',
     'ReinstallScope',
     'VerbosityLevel'
-) 
+)

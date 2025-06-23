@@ -39,4 +39,4 @@ function Invoke-FFMpeg {
     $result = Invoke-Process ffmpeg $finalArguments
 
     return $result
-} 
+}

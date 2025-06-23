@@ -47,16 +47,16 @@ function Get-MkvTrack {
 
     # Remove .mkv extension if present
     $baseName = [System.IO.Path]::GetFileNameWithoutExtension($Name)
-    
-    Write-Host "Extracting track $Track from '$Name'" -ForegroundColor Blue
+
+    Write-Information "Extracting track $Track from '$Name'" -InformationAction Continue
 
     $outputName = Join-Path -Path (Get-Location) -ChildPath "$baseName.$Extension"
     mkvextract "$Name" tracks $Track`:"$outputName"
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "Failed (Exit code: $LASTEXITCODE)" -ForegroundColor Red
+        Write-Error "Failed to extract track (Exit code: $LASTEXITCODE)"
     }
     else {
-        Write-Host "Complete" -ForegroundColor Blue
+        Write-Information "Complete" -InformationAction Continue
     }
-} 
+}

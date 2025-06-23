@@ -60,7 +60,7 @@ function Get-MediaStreams {
 
     # Validate the file path before proceeding
     if (-not (Test-Path -Path $Path -PathType Leaf)) {
-        throw "The file path '$Path' does not exist or is not a valid file."
+        Write-Error "The file path '$Path' does not exist or is not a valid file." -ErrorAction Stop
     }
 
     # Get all streams from the file using ffprobe

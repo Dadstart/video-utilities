@@ -71,4 +71,4 @@ function Invoke-Process {
     }
 
     return $standardOutput
-} 
+}

@@ -78,112 +78,114 @@ function Export-MediaStream {
         [Parameter(Mandatory, Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [string]$InputPath,
-        
+
         [Parameter(Mandatory, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string]$OutputPath,
-        
+
         [Parameter(Mandatory, Position = 2)]
         [ValidateNotNull()]
         [StreamType]$Type,
-        
+
         [Parameter(Mandatory, Position = 3)]
         [ValidateRange(0, [int]::MaxValue)]
         [int]$Index,
-        
+
         [Parameter()]
         [switch]$Force
     )
 
-    Write-Verbose "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
+    process {
+        Write-Verbose "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
 
-    # Resolve and validate input path
-    try {
-        $InputPath = Resolve-Path $InputPath -ErrorAction Stop
-        Write-Verbose "Input path resolved: $InputPath"
-    }
-    catch {
-        Write-Error "Input file not found: $InputPath" -ErrorAction Stop
-    }
-
-    # Resolve output path relative to current working directory
-    if ([System.IO.Path]::IsPathRooted($OutputPath)) {
-        # Absolute path - use as is
-        $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
-    } else {
-        # Relative path - resolve relative to current working directory
-        $OutputPath = Join-Path (Get-Location) $OutputPath
-        $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
-    }
-    Write-Verbose "Output path resolved: $OutputPath"
-
-    # Create output directory if it doesn't exist
-    $outputDir = Split-Path $OutputPath -Parent
-    if ($outputDir -and -not (Test-Path $outputDir)) {
-        Write-Verbose "Creating output directory: $outputDir"
-        if ($PSCmdlet.ShouldProcess($outputDir, "Create directory")) {
-            New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
-        }
-    }
-
-    # Check if output file exists and handle Force parameter
-    if (Test-Path $OutputPath) {
-        if (-not $Force) {
-            Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite." -ErrorAction Stop
-        } else {
-            Write-Verbose "Overwriting existing file: $OutputPath"
-        }
-    }
-
-    
-    # Build ffmpeg arguments
-    # Should result in call to ffmpeg with argments: -i input.mkv -y -map 0:s:0 -c copy output.sup
-        
-    if ($Type -eq 'None') {
-        $mapValue = "0:$Index"
-    } else {
-        # Stream type mapping
-        $streamFilter = switch ($Type) {
-            'Audio' { 'a' }
-            'Video' { 'v' }
-            'Subtitle' { 's' }
-            'Data' { 'd' }
-            default { Write-Error "Unsupported stream type: $Type" -ErrorAction Stop }
-        }
-        $mapValue = "0:$($streamFilter):$Index"
-    }
-
-    $ffmpegArgs = @(
-        '-i', $InputPath,
-        '-y',  # Overwrite output files
-        '-map', $mapValue,
-        '-c', 'copy',
-        $OutputPath
-    )
-    Write-Verbose "FFmpeg command: ffmpeg $($ffmpegArgs -join ' ')"
-
-    $operation = "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
-    
-    if ($WhatIfPreference) {
-        Write-Host "What if: $operation"
-        Write-Host "Command: ffmpeg $($ffmpegArgs -join ' ')"
-        return
-    }
-
-    if ($PSCmdlet.ShouldProcess($OutputPath, $operation)) {
+        # Resolve and validate input path
         try {
-            Write-Progress -Activity "Exporting Media Stream" -Status "Processing $InputPath" -PercentComplete 0
-            
-            Write-Verbose "Executing: ffmpeg $($ffmpegArgs -join ' ')"
-            
-            Invoke-FFMpeg $ffmpegArgs
-            
-            Write-Progress -Activity "Exporting Media Stream" -Status "Complete" -PercentComplete 100
-            Write-Verbose "Successfully exported stream to: $OutputPath"
+            $InputPath = Resolve-Path $InputPath -ErrorAction Stop
+            Write-Verbose "Input path resolved: $InputPath"
         }
         catch {
-            Write-Progress -Activity "Exporting Media Stream" -Completed
-            Write-Error "Failed to extract stream: $($_.Exception.Message)" -ErrorAction Stop
+            Write-Error "Input file not found: $InputPath" -ErrorAction Stop
+        }
+
+        # Resolve output path relative to current working directory
+        if ([System.IO.Path]::IsPathRooted($OutputPath)) {
+            # Absolute path - use as is
+            $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
+        } else {
+            # Relative path - resolve relative to current working directory
+            $OutputPath = Join-Path (Get-Location) $OutputPath
+            $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
+        }
+        Write-Verbose "Output path resolved: $OutputPath"
+
+        # Create output directory if it doesn't exist
+        $outputDir = Split-Path $OutputPath -Parent
+        if ($outputDir -and -not (Test-Path $outputDir)) {
+            Write-Verbose "Creating output directory: $outputDir"
+            if ($PSCmdlet.ShouldProcess($outputDir, "Create directory")) {
+                New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+            }
+        }
+
+        # Check if output file exists and handle Force parameter
+        if (Test-Path $OutputPath) {
+            if (-not $Force) {
+                Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite." -ErrorAction Stop
+            } else {
+                Write-Verbose "Overwriting existing file: $OutputPath"
+            }
+        }
+
+
+        # Build ffmpeg arguments
+        # Should result in call to ffmpeg with argments: -i input.mkv -y -map 0:s:0 -c copy output.sup
+
+        if ($Type -eq 'None') {
+            $mapValue = "0:$Index"
+        } else {
+            # Stream type mapping
+            $streamFilter = switch ($Type) {
+                'Audio' { 'a' }
+                'Video' { 'v' }
+                'Subtitle' { 's' }
+                'Data' { 'd' }
+                default { Write-Error "Unsupported stream type: $Type" -ErrorAction Stop }
+            }
+            $mapValue = "0:$($streamFilter):$Index"
+        }
+
+        $ffmpegArgs = @(
+            '-i', $InputPath,
+            '-y',  # Overwrite output files
+            '-map', $mapValue,
+            '-c', 'copy',
+            $OutputPath
+        )
+        Write-Verbose "FFmpeg command: ffmpeg $($ffmpegArgs -join ' ')"
+
+        $operation = "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
+
+        if ($WhatIfPreference) {
+            Write-Output "What if: $operation"
+            Write-Output "Command: ffmpeg $($ffmpegArgs -join ' ')"
+            return
+        }
+
+        if ($PSCmdlet.ShouldProcess($OutputPath, $operation)) {
+            try {
+                Write-Progress -Activity "Exporting Media Stream" -Status "Processing $InputPath" -PercentComplete 0
+
+                Write-Verbose "Executing: ffmpeg $($ffmpegArgs -join ' ')"
+
+                Invoke-FFMpeg $ffmpegArgs
+
+                Write-Progress -Activity "Exporting Media Stream" -Status "Complete" -PercentComplete 100
+                Write-Verbose "Successfully exported stream to: $OutputPath"
+            }
+            catch {
+                Write-Progress -Activity "Exporting Media Stream" -Completed
+                Write-Error "Failed to extract stream: $($_.Exception.Message)" -ErrorAction Stop
+            }
         }
     }
 }

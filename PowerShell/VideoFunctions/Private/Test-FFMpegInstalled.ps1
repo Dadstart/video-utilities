@@ -45,4 +45,4 @@ function Test-FFMpegInstalled {
     else {
         return $false
     }
-} 
+}

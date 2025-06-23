@@ -33,20 +33,20 @@ function Invoke-PlexFileOperations {
         [string]$Destination
     )
 
-    Write-Host "Organizing files in to Plex directory $Destination" -ForegroundColor Green
+    Write-Information "Organizing files in to Plex directory $Destination" -InformationAction Continue
 
     try {
         if (-not (Test-Path -Path $Destination)) {
-            throw "Destination folder does not exist"
+            Write-Error "Destination folder does not exist" -ErrorAction Stop
         }
 
         Add-PlexFolders $Destination
-        Move-PlexFiles $Destination   
+        Move-PlexFiles $Destination
         Remove-PlexEmptyFolders $Destination
         return
     }
     catch {
-        Write-Host $_ -ForegroundColor Red
+        Write-Error $_
         return
     }
-} 
+}

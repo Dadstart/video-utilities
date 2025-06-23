@@ -24,8 +24,8 @@ function Get-FFMpegVersion {
     param()
 
     Test-FFMpegInstalled -Throw | Out-Null
-    
+
     $result = Invoke-FFProbe '-show_program_version'
 
     return $result.program_version.version
-} 
+}
