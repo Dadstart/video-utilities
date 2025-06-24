@@ -35,4 +35,4 @@ function Get-FileFromPath {
 
     $cmd = Get-Command -Name $Name -ErrorAction SilentlyContinue -CommandType Application -TotalCount 1
     return $cmd
-} 
+}

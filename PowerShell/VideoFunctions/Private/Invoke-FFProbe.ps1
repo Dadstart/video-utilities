@@ -45,4 +45,4 @@ function Invoke-FFProbe {
     $result = $json | ConvertFrom-Json
 
     return $result
-} 
+}

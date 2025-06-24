@@ -1,4 +1,4 @@
-function Invoke-PlexFileOperations {
+function Invoke-PlexFileOperation {
     <#
     .SYNOPSIS
         Invokes all Plex file and folder operations.
@@ -10,7 +10,7 @@ function Invoke-PlexFileOperations {
         Destination path of the Plex bonus content files.
 
     .EXAMPLE
-        Invoke-PlexFileOperations 'C:\plex\movies\My Movie'
+        Invoke-PlexFileOperation 'C:\plex\movies\My Movie'
 
         Executes the following commands:
         - Add-PlexFolders $Destination
@@ -27,25 +27,26 @@ function Invoke-PlexFileOperations {
         This function is a convenience wrapper that performs all Plex organization operations in sequence.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Destination
     )
 
-    Write-Host "Organizing files in to Plex directory $Destination" -ForegroundColor Green
+    Write-Information "Organizing files in to Plex directory $Destination" -InformationAction Continue
 
     try {
         if (-not (Test-Path -Path $Destination)) {
-            throw "Destination folder does not exist"
+            Write-Error "Destination folder does not exist" -ErrorAction Stop
         }
 
-        Add-PlexFolders $Destination
-        Move-PlexFiles $Destination   
-        Remove-PlexEmptyFolders $Destination
+        Add-PlexFolder $Destination
+        Move-PlexFile $Destination
+        Remove-PlexEmptyFolder $Destination
         return
     }
     catch {
-        Write-Host $_ -ForegroundColor Red
+        Write-Error $_
         return
     }
-} 
+}

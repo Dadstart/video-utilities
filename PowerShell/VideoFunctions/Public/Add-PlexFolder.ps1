@@ -1,4 +1,4 @@
-function Add-PlexFolders {
+function Add-PlexFolder {
     <#
     .SYNOPSIS
         Adds Plex folders for bonus content.
@@ -26,13 +26,14 @@ function Add-PlexFolders {
         This function creates the standard Plex bonus content folder structure.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Destination
     )
 
     if (-not (Test-Path -Path $Destination)) {
-        throw "Destination folder does not exist"
+        Write-Error "Destination folder does not exist" -ErrorAction Stop
     }
 
     $plexLayout = @{
@@ -47,11 +48,11 @@ function Add-PlexFolders {
     }
 
     foreach ($folder in $plexLayout.Keys) {
-        $path = "$Destination\$folder"
+        $path = Join-Path -Path $Destination -ChildPath $folder
         if (-not (Test-Path -Path $path)) {
             New-Item -Path $path -ItemType Directory
         }
     }
 
-    Write-Host "Plex folders created" -ForegroundColor Blue
-} 
+    Write-Information "Plex folders created" -InformationAction Continue
+}

@@ -1,4 +1,4 @@
-function Remove-PlexEmptyFolders {
+function Remove-PlexEmptyFolder {
     <#
     .SYNOPSIS
         Removes empty Plex folders for bonus content.
@@ -10,7 +10,7 @@ function Remove-PlexEmptyFolders {
         Destination path where the Plex folders exist.
 
     .EXAMPLE
-        Remove-PlexEmptyFolders 'C:\plex\movies\My Movie'
+        Remove-PlexEmptyFolder 'C:\plex\movies\My Movie'
 
         Removes the folder 'C:\plex\movies\My Movie\Behind The Scenes' if it is empty
         Removes the folder 'C:\plex\movies\My Movie\Deleted Scenes' if it is empty
@@ -25,14 +25,15 @@ function Remove-PlexEmptyFolders {
     .NOTES
         This function only removes Plex bonus content folders that are completely empty.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Destination
     )
 
     if (-not (Test-Path -Path $Destination)) {
-        throw "Destination folder does not exist"
+        Write-Error "Destination folder does not exist" -ErrorAction Stop
     }
 
     $plexLayout = @{
@@ -48,17 +49,23 @@ function Remove-PlexEmptyFolders {
 
     $foldersDeleted = 0
     foreach ($folder in $plexLayout.Keys) {
-        $path = "$Destination\$folder"
+        $path = Join-Path -Path $Destination -ChildPath $folder
 
         if (-not (Test-Path -Path $path)) {
             continue
         }
 
         if ((Get-ChildItem $path).Count -eq 0) {
-            $foldersDeleted++
-            Remove-Item -Path $path
+            if ($PSCmdlet.ShouldProcess($path, "Remove empty folder")) {
+                $foldersDeleted++
+                Remove-Item -Path $path
+            }
         }
     }
 
-    Write-Host "$foldersDeleted empty Plex folders deleted" -ForegroundColor Blue
-} 
+    if ($foldersDeleted -eq 0) {
+        Write-Warning "No empty Plex folders found to remove in '$Destination'"
+    } else {
+        Write-Information "$foldersDeleted empty Plex folders deleted" -InformationAction Continue
+    }
+}

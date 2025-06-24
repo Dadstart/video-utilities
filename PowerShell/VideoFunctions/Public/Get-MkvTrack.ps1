@@ -32,6 +32,7 @@ function Get-MkvTrack {
         This function requires mkvextract to be installed and available in the system PATH.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Name,
@@ -41,19 +42,21 @@ function Get-MkvTrack {
         [string]$Extension
     )
 
-    if ($Name.EndsWith(".mkv")) { 
-        $Name = $Name.Substring(0, $Name.Length - 4) 
-    }
-    
-    Write-Host "Extracting track $Track from '$Name.mkv'" -ForegroundColor Blue
+    # Check if mkvextract is installed
+    Test-MkvExtractInstalled -Throw | Out-Null
 
-    $outputName = "$Name.$Extension"
-    mkvextract "$Name.mkv" tracks $Track`:"$outputName"
+    # Remove .mkv extension if present
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($Name)
+
+    Write-Information "Extracting track $Track from '$Name'" -InformationAction Continue
+
+    $outputName = Join-Path -Path (Get-Location) -ChildPath "$baseName.$Extension"
+    mkvextract "$Name" tracks $Track`:"$outputName"
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "Failed (Exit code: $LASTEXITCODE)" -ForegroundColor Red
+        Write-Error "Failed to extract track (Exit code: $LASTEXITCODE)"
     }
     else {
-        Write-Host "Complete" -ForegroundColor Blue
+        Write-Information "Complete" -InformationAction Continue
     }
-} 
+}

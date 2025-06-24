@@ -1,4 +1,4 @@
-function Move-PlexFiles {
+function Move-PlexFile {
     <#
     .SYNOPSIS
         Moves bonus content to Plex folders.
@@ -10,7 +10,7 @@ function Move-PlexFiles {
         Destination path where the bonus content should be moved.
 
     .EXAMPLE
-        Move-PlexFiles 'C:\plex\movies\My Movie'
+        Move-PlexFile 'C:\plex\movies\My Movie'
 
         Moves *-behindthescenes.* to 'C:\plex\movies\My Movie\Behind The Scenes'
         Moves *-deleted.* to 'C:\plex\movies\My Movie\Deleted Scenes'
@@ -26,13 +26,14 @@ function Move-PlexFiles {
         This function looks for files with specific suffixes in the current directory and moves them to appropriate Plex folders.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Destination
     )
 
     if (-not (Test-Path -Path $Destination)) {
-        throw "Destination folder does not exist"
+        Write-Error "Destination folder does not exist" -ErrorAction Stop
     }
 
     $plexLayout = @{
@@ -46,15 +47,21 @@ function Move-PlexFiles {
         'Other'             = 'other'
     }
 
+    $filesMoved = 0
     foreach ($folder in $plexLayout.Keys) {
         $fileSuffix = $plexLayout[$folder]
         $destFiles = (Get-ChildItem -Recurse "*-$fileSuffix.mp4") + (Get-ChildItem -Recurse "*-$fileSuffix.srt")
-        $destFolder = "$Destination\$folder"
-        Write-Host "Moving -$fileSuffix to $destFolder"
+        $destFolder = Join-Path -Path $Destination -ChildPath $folder
+        Write-Output "Moving -$fileSuffix to $destFolder"
         foreach ($destFile in $destFiles) {
             Move-Item $destFile.Name "$destFolder"
+            $filesMoved++
         }
     }
 
-    Write-Host "Files moved to Plex folders" -ForegroundColor Blue
-} 
+    if ($filesMoved -eq 0) {
+        Write-Warning "No bonus content files found to move in current directory"
+    } else {
+        Write-Information "$filesMoved files moved to Plex folders" -InformationAction Continue
+    }
+}

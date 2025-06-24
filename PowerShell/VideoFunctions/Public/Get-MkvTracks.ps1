@@ -33,6 +33,7 @@ function Get-MkvTracks {
         This function requires mkvextract to be installed and available in the system PATH.
     #>
     [CmdletBinding()]
+    [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Name,
@@ -42,8 +43,11 @@ function Get-MkvTracks {
         [string]$Extension
     )
 
+    # Check if mkvextract is installed
+    Test-MkvExtractInstalled -Throw | Out-Null
+
     foreach ($track in $Tracks) {
         $finalExtension = "$track.$Extension"
         Get-MkvTrack $Name $track $finalExtension
     }
-} 
+}

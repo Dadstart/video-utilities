@@ -28,7 +28,7 @@ function Get-MediaStream {
     .EXAMPLE
         Get-MediaStream 'example.mp4' -Index 0
         Retrieves the first stream (index 0) from 'example.mp4'.
-    
+
     .EXAMPLE
         Get-MediaStream 'example.mp4' -Index 2 -Type Video
         Retrieves the third video stream (index 2) from 'example.mp4'.
@@ -42,7 +42,7 @@ function Get-MediaStream {
         Retrieves the first subtitle stream (index 0) from 'example.mp4'.
 
     .OUTPUTS
-        [System.Object]
+        [object]
         Returns a single stream object at the specified index (after type filtering).
 
     .NOTES
@@ -51,6 +51,7 @@ function Get-MediaStream {
         The index applies to streams of the specified type, not all streams in the file.
     #>
     [CmdletBinding()]
+    [OutputType([object])]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [string]$Name,
@@ -61,14 +62,14 @@ function Get-MediaStream {
     )
 
     if ($Type -eq [StreamType]::All) {
-        $codecFilter = $null;
+        $codecFilter = $null
     } else {
-        $t = $Type.ToString().Substring(0, 1).ToLowerInvariant();
-        $codecFilter = "$t`:";
+        $t = $Type.ToString().Substring(0, 1).ToLowerInvariant()
+        $codecFilter = "$t`:"
     }
 
-    $streams = Invoke-FFProbe "-select_streams $codecFilter$Index -show_streams", $Name;
-    $stream = $streams.streams[0];
-    Write-Verbose "Retrieved $Type stream at index $Index from $Name (type: $($stream.codec_type)).";
-    return $stream;
-} 
+    $streams = Invoke-FFProbe "-select_streams $codecFilter$Index -show_streams", $Name
+    $stream = $streams.streams[0]
+    Write-Verbose "Retrieved $Type stream at index $Index from $Name (type: $($stream.codec_type))."
+    return $stream
+}
