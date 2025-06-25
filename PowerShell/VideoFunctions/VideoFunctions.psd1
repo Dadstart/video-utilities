@@ -72,23 +72,22 @@ PowerShellVersion = '5.1'
 FunctionsToExport = @(
     # FFMpeg
     'Get-FFMpegVersion',
-    'Invoke-FFProbe',
-    
+
     # Media
     'Get-MediaStream',
     'Get-MediaStreams',
     'Export-MediaStream',
 
-    # Mkv
+    # MKV
     'Get-MkvTrack',
     'Get-MkvTracks',
     'Get-MkvTrackAll',
 
     # Plex
-    'Add-PlexFolders', 
-    'Move-PlexFiles',
-    'Remove-PlexEmptyFolders', 
-    'Invoke-PlexFileOperations'
+    'Add-PlexFolder',
+    'Move-PlexFile',
+    'Remove-PlexEmptyFolder',
+    'Invoke-PlexFileOperation'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

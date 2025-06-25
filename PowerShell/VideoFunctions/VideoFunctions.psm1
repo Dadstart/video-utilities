@@ -48,12 +48,9 @@ Export-ModuleMember -Function @(
     'Get-MkvTracks',
     'Get-MkvTrackAll',
 
-    # MPEG functions
-    'Get-MpegStreams',
-
     # Plex functions
-    'Add-PlexFolders',
-    'Move-PlexFiles',
-    'Remove-PlexEmptyFolders',
-    'Invoke-PlexFileOperations'
+    'Add-PlexFolder',
+    'Move-PlexFile',
+    'Remove-PlexEmptyFolder',
+    'Invoke-PlexFileOperation'
 ) 
