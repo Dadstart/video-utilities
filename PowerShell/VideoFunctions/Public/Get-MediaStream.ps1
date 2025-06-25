@@ -68,7 +68,7 @@ function Get-MediaStream {
         $codecFilter = "$t`:"
     }
 
-    $streams = Invoke-FFProbe "-select_streams $codecFilter$Index -show_streams", $Name
+    $streams = Invoke-FFProbe "-select_streams", "$codecFilter$Index", "-show_streams", $Name
     $stream = $streams.streams[0]
     Write-Verbose "Retrieved $Type stream at index $Index from $Name (type: $($stream.codec_type))."
     return $stream
