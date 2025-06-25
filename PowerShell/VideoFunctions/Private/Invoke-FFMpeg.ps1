@@ -33,7 +33,7 @@ function Invoke-FFMpeg {
     # Check if ffmpeg is installed
     Test-FFMpegInstalled -Throw | Out-Null
 
-    $finalArguments = @('-v error', '-hide_banner') + $Arguments
+    $finalArguments = @('-v', 'error', '-hide_banner') + $Arguments
 
     Write-Verbose "Invoke-FFMpeg: Arguments: $($finalArguments -join ' ')"
     $result = Invoke-Process ffmpeg $finalArguments

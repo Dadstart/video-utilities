@@ -39,7 +39,7 @@ function Invoke-FFProbe {
     # Check if ffmpeg is installed
     Test-FFMpegInstalled -Throw | Out-Null
 
-    $finalArguments = @('-v error', '-of json') + $Arguments
+    $finalArguments = @('-v', 'error', '-of', 'json') + $Arguments
     Write-Verbose "Invoke-FFProbe: Arguments: $($finalArguments -join ' ')"
     $json = Invoke-Process ffprobe $finalArguments
     $result = $json | ConvertFrom-Json

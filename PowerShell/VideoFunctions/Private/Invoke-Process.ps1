@@ -37,15 +37,21 @@ function Invoke-Process {
     )
 
     # Setup process start information
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.CreateNoWindow = $true
-    $psi.UseShellExecute = $false
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
-    $psi.WorkingDirectory = $PWD.Path # Use current working directory
-    $psi.FileName = $Name
-    $psi.Arguments = $Arguments -join ' '
-    Write-Verbose "Invoke-Process: Process Info: $($psi.FileName) $($psi.Arguments)"
+    # $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi = New-Object System.Diagnostics.ProcessStartInfo -Property @{
+        FileName     = $Name
+        CreateNoWindow = $true
+        UseShellExecute = $false
+        RedirectStandardOutput = $true
+        RedirectStandardError = $true
+        WorkingDirectory = (Get-Location).Path
+    }
+
+    foreach ($arg in $Arguments) {
+        [void]$psi.ArgumentList.Add($arg)
+    }
+
+    Write-Verbose "Invoke-Process: Process Info: FileName: $($psi.FileName) Arguments: $($psi.ArgumentList)"
 
     # Create process object
     $process = New-Object -TypeName System.Diagnostics.Process
@@ -64,7 +70,7 @@ function Invoke-Process {
 
     # Check for errors
     if ($process.ExitCode -ne 0) {
-        Write-Debug "Process Failed`n`tExecutable: $Name`n`tArguments: $Arguments`n`tExit Code: $($process.ExitCode)`n`tError: $standardError"
+        Write-Warning "Process Failed`n`tExecutable: $Name`n`tArguments: $Arguments`n`tExit Code: $($process.ExitCode)`n`tError: $standardError"
         throw $standardError.Trim()
     } elseif ($standardError.Length -gt 0) {
         Write-Warning "Process Error Output: $($standardError.Trim())"
