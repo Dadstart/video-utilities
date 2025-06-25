@@ -63,6 +63,17 @@ function Get-MediaStreams {
         Write-Error "The file path '$Path' does not exist or is not a valid file." -ErrorAction Stop
     }
 
+    # Resolve path relative to current working directory
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        # Absolute path - use as is
+        $Path = [System.IO.Path]::GetFullPath($Path)
+    } else {
+        # Relative path - resolve relative to current working directory
+        $Path = Join-Path (Get-Location) $Path
+        $Path = [System.IO.Path]::GetFullPath($Path)
+    }
+    Write-Verbose "Output path resolved: $Path"
+
     # Get all streams from the file using ffprobe
     $ffprobeResult = Invoke-FFProbe '-show_streams', $Path
     $streams = $ffprobeResult.streams
