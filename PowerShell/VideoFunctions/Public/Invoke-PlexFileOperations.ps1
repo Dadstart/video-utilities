@@ -4,21 +4,24 @@ function Invoke-PlexFileOperation {
         Invokes all Plex file and folder operations.
 
     .DESCRIPTION
-        This function takes a destination where the Plex movie exists and performs all Plex organization operations.
+        This function takes a source and destination where the Plex movie exists and performs all Plex organization operations.
+
+    .PARAMETER Source
+        Source path where the bonus content files are located.
 
     .PARAMETER Destination
         Destination path of the Plex bonus content files.
 
     .EXAMPLE
-        Invoke-PlexFileOperation 'C:\plex\movies\My Movie'
+        Invoke-PlexFileOperation -Source 'C:\downloads\My Movie' -Destination 'C:\plex\movies\My Movie'
 
         Executes the following commands:
-        - Add-PlexFolders $Destination
-        - Move-PlexFiles $Destination
-        - Remove-PlexEmptyFolders $Destination
+        - Add-PlexFolder $Destination
+        - Move-PlexFile -Source $Source -Destination $Destination
+        - Remove-PlexEmptyFolder $Destination
 
     .INPUTS
-        [string] - The destination path
+        [string] - The source and destination paths
 
     .OUTPUTS
         None. Performs file and folder operations.
@@ -30,18 +33,23 @@ function Invoke-PlexFileOperation {
     [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
+        [string]$Source,
+        [Parameter(Mandatory = $true)]
         [string]$Destination
     )
 
-    Write-Information "Organizing files in to Plex directory $Destination" -InformationAction Continue
+    Write-Information "Organizing files from $Source into Plex directory $Destination" -InformationAction Continue
 
     try {
         if (-not (Test-Path -Path $Destination)) {
             Write-Error "Destination folder does not exist" -ErrorAction Stop
         }
+        if (-not (Test-Path -Path $Source)) {
+            Write-Error "Source folder does not exist" -ErrorAction Stop
+        }
 
         Add-PlexFolder $Destination
-        Move-PlexFile $Destination
+        Move-PlexFile -Source $Source -Destination $Destination
         Remove-PlexEmptyFolder $Destination
         return
     }
