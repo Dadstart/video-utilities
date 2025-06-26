@@ -35,4 +35,15 @@ if (Test-Path $publicPath) {
 }
 
 # Export public functions
-Export-ModuleMember -Function @() 
+Export-ModuleMember -Function @(
+    'Export-MediaStream',
+    'Get-FFMpegVersion',
+    'Get-MediaStream',
+    'Get-MediaStreams',
+    'Get-MkvTrack',
+    'Get-MkvTrackAll',
+    'Get-MkvTracks',
+    'Invoke-PlexFileOperation',
+    'Move-PlexFile',
+    'Remove-PlexEmptyFolder'
+)
