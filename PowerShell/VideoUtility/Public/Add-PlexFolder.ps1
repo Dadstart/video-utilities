@@ -55,3 +55,4 @@ function Add-PlexFolder {
         }
     }
     Write-Information "Plex folders created"
+}
