@@ -36,7 +36,6 @@ if (Test-Path $publicPath) {
 
 # Export public functions
 Export-ModuleMember -Function @(
-    'Add-PlexFolder',
     'Export-MediaStream',
     'Get-FFMpegVersion',
     'Get-MediaStream',
@@ -44,8 +43,7 @@ Export-ModuleMember -Function @(
     'Get-MkvTrack',
     'Get-MkvTrackAll',
     'Get-MkvTracks',
-    'Get-VideoInfo',
     'Invoke-PlexFileOperation',
     'Move-PlexFile',
     'Remove-PlexEmptyFolder'
-) 
+)
