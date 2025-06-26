@@ -38,7 +38,7 @@ function Invoke-PlexFileOperation {
         [string]$Destination
     )
 
-    Write-Information "Organizing files from $Source into Plex directory $Destination" -InformationAction Continue
+    Write-Information "Organizing files from $Source into Plex directory $Destination"
 
     try {
         if (-not (Test-Path -Path $Destination)) {
