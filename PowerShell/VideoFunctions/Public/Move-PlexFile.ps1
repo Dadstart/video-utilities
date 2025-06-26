@@ -55,6 +55,7 @@ function Move-PlexFile {
         'Other'             = 'other'
     }
 
+    Write-Information "Moving bonus content to Plex folders"
     $filesMoved = 0
     foreach ($folder in $plexLayout.Keys) {
         $fileSuffix = $plexLayout[$folder]

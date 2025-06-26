@@ -47,6 +47,7 @@ function Remove-PlexEmptyFolder {
         'Other'             = 'other'
     }
 
+    Write-Information "Removing empty Plex folders"
     $foldersDeleted = 0
     foreach ($folder in $plexLayout.Keys) {
         $path = Join-Path -Path $Destination -ChildPath $folder
@@ -66,6 +67,6 @@ function Remove-PlexEmptyFolder {
     if ($foldersDeleted -eq 0) {
         Write-Warning "No empty Plex folders found to remove in '$Destination'"
     } else {
-        Write-Information "$foldersDeleted empty Plex folders deleted" -InformationAction Continue
+        Write-Information "$foldersDeleted empty Plex folders deleted"
     }
 }
