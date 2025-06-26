@@ -2,16 +2,16 @@
 
 <#
 .SYNOPSIS
-    Video PowerShell Module
+    VideoUtility PowerShell Module
 
 .DESCRIPTION
     A PowerShell module for video processing and manipulation utilities.
     This module provides functions for working with video files, media analysis, and processing.
 
 .NOTES
-    Version: 1.0.0
+    Version: 0.2.0
     Author: Andrew Bishop
-    Copyright: Copyright © Andrew Bishop 2024
+    Copyright: Copyright © Andrew Bishop
     PowerShell Version: 7.0+
 #>
 

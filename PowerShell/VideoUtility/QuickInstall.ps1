@@ -1,15 +1,15 @@
 <#
 .SYNOPSIS
-    Quick install script for the Video PowerShell module.
+    Quick install script for the VideoUtility PowerShell module.
 
 .DESCRIPTION
-    This script performs a quick installation of the Video PowerShell module.
+    This script performs a quick installation of the VideoUtility PowerShell module.
     It removes any existing installation and installs the current version.
 
 .EXAMPLE
     .\QuickInstall.ps1
     
-    Performs a quick installation of the Video module.
+    Performs a quick installation of the VideoUtility module.
 
 .NOTES
     This script requires PowerShell 7.0 or higher.
@@ -20,7 +20,7 @@ param()
 
 #Requires -Version 7.0
 
-Write-Host "Performing quick installation of Video module..." -ForegroundColor Yellow
+Write-Host "Performing quick installation of VideoUtility module..." -ForegroundColor Yellow
 
 # Get the script directory
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
