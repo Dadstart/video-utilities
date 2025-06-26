@@ -171,19 +171,20 @@ function Export-MediaStream {
             return
         }
 
+        $progressActivity = "Exporting $Type Stream from $InputPath"
         if ($PSCmdlet.ShouldProcess($OutputPath, $operation)) {
             try {
-                Write-Progress -Activity "Exporting Media Stream" -Status "Processing $InputPath" -PercentComplete 0
+                Write-Progress -Activity $progressActivity -Status "Processing $InputPath" -PercentComplete 0
 
                 Write-Verbose "Executing: ffmpeg $($ffmpegArgs -join ' ')"
 
                 Invoke-FFMpeg $ffmpegArgs
 
-                Write-Progress -Activity "Exporting Media Stream" -Status "Complete" -PercentComplete 100
+                Write-Progress -Activity $progressActivity -Status "Complete" -PercentComplete 100
                 Write-Verbose "Successfully exported stream to: $OutputPath"
             }
             catch {
-                Write-Progress -Activity "Exporting Media Stream" -Completed
+                Write-Progress -Activity $progressActivity -Completed
                 Write-Error "Failed to extract stream: $($_.Exception.Message)" -ErrorAction Stop
             }
         }
