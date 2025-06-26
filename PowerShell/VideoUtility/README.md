@@ -1,4 +1,4 @@
-# Video PowerShell Module
+# VideoUtility PowerShell Module
 
 A PowerShell module for video processing and manipulation utilities. This module provides functions for working with video files, media analysis, and processing.
 
@@ -19,15 +19,15 @@ A PowerShell module for video processing and manipulation utilities. This module
 ### Manual Installation
 
 1. Clone or download this repository
-2. Copy the `Video` folder to your PowerShell modules directory:
+2. Copy the `VideoUtility` folder to your PowerShell modules directory:
    - **Windows**: `$env:USERPROFILE\Documents\PowerShell\Modules\`
    - **macOS/Linux**: `$HOME/.local/share/powershell/Modules/`
-3. Import the module: `Import-Module Video`
+3. Import the module: `Import-Module VideoUtility`
 
 ### From PowerShell Gallery (Future)
 
 ```powershell
-Install-Module -Name Video -Repository PSGallery
+Install-Module -Name VideoUtility -Repository PSGallery
 ```
 
 ## Module Structure
@@ -35,15 +35,15 @@ Install-Module -Name Video -Repository PSGallery
 The module follows PowerShell best practices with organized function structure:
 
 ```
-Video/
-├── Video.psd1              # Module manifest
-├── Video.psm1              # Root module file
-├── README.md               # This file
-├── Public/                 # Public functions (exported)
+VideoUtility/
+├── VideoUtility.psd1        # Module manifest
+├── VideoUtility.psm1        # Root module file
+├── README.md                # This file
+├── Public/                  # Public functions (exported)
 │   └── (function files)
-├── Private/                # Private helper functions
+├── Private/                 # Private helper functions
 │   └── (helper files)
-└── Tests/                  # Pester test files (future)
+└── Tests/                   # Pester test files (future)
     └── (test files)
 ```
 
@@ -57,10 +57,10 @@ Video/
 
 ```powershell
 # Import the module
-Import-Module Video
+Import-Module VideoUtility
 
 # List available functions
-Get-Command -Module Video
+Get-Command -Module VideoUtility
 ```
 
 ## Development
@@ -69,7 +69,7 @@ Get-Command -Module Video
 
 1. **Public Functions**: Place in the `Public/` directory
 2. **Private Functions**: Place in the `Private/` directory
-3. **Update Module Files**: Add function names to `Video.psm1` and `Video.psd1`
+3. **Update Module Files**: Add function names to `VideoUtility.psm1` and `VideoUtility.psd1`
 
 ### Function Template
 
@@ -116,8 +116,9 @@ The module includes comprehensive error handling:
 
 ## License
 
-Copyright © Andrew Bishop 2024
+Copyright © Andrew Bishop
 
 ## Version History
 
-- **1.0.0** - Initial release 
+- **0.2.0** - Renamed module from Video to VideoUtility
+- **0.1.0** - Initial prerelease 

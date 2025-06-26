@@ -1,14 +1,14 @@
 <#
 .SYNOPSIS
-    Uninstall script for the Video PowerShell module.
+    Uninstall script for the VideoUtility PowerShell module.
 
 .DESCRIPTION
-    This script removes the Video PowerShell module from the user's PowerShell modules directory.
+    This script removes the VideoUtility PowerShell module from the user's PowerShell modules directory.
 
 .EXAMPLE
     .\Uninstall.ps1
     
-    Removes the Video module from the user's PowerShell modules directory.
+    Removes the VideoUtility module from the user's PowerShell modules directory.
 
 .NOTES
     This script requires PowerShell 7.0 or higher.
@@ -27,28 +27,28 @@ $modulesPath = if ($IsWindows) {
 }
 
 # Define the target module directory
-$targetModulePath = Join-Path $modulesPath "Video"
+$targetModulePath = Join-Path $modulesPath "VideoUtility"
 
 # Check if module exists
 if (-not (Test-Path $targetModulePath)) {
-    Write-Warning "Video module not found at: $targetModulePath"
+    Write-Warning "VideoUtility module not found at: $targetModulePath"
     return
 }
 
 try {
     # Remove the module if it's currently loaded
-    if (Get-Module -Name Video -ErrorAction SilentlyContinue) {
-        Write-Verbose "Removing loaded Video module"
-        Remove-Module -Name Video -Force -ErrorAction SilentlyContinue
+    if (Get-Module -Name VideoUtility -ErrorAction SilentlyContinue) {
+        Write-Verbose "Removing loaded VideoUtility module"
+        Remove-Module -Name VideoUtility -Force -ErrorAction SilentlyContinue
     }
     
     # Remove the module directory
-    Write-Verbose "Removing Video module from: $targetModulePath"
+    Write-Verbose "Removing VideoUtility module from: $targetModulePath"
     Remove-Item -Path $targetModulePath -Recurse -Force
     
-    Write-Host "Video module uninstalled successfully!" -ForegroundColor Green
+    Write-Host "VideoUtility module uninstalled successfully!" -ForegroundColor Green
 }
 catch {
-    Write-Error "Failed to uninstall Video module: $($_.Exception.Message)"
+    Write-Error "Failed to uninstall VideoUtility module: $($_.Exception.Message)"
     throw
 } 

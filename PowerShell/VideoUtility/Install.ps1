@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Install script for the Video PowerShell module.
+    Install script for the VideoUtility PowerShell module.
 
 .DESCRIPTION
-    This script installs the Video PowerShell module to the user's PowerShell modules directory.
+    This script installs the VideoUtility PowerShell module to the user's PowerShell modules directory.
     It will create the necessary directory structure and copy all module files.
 
 .PARAMETER Force
@@ -12,7 +12,7 @@
 .EXAMPLE
     .\Install.ps1
     
-    Installs the Video module to the user's PowerShell modules directory.
+    Installs the VideoUtility module to the user's PowerShell modules directory.
 
 .EXAMPLE
     .\Install.ps1 -Force
@@ -48,7 +48,7 @@ if (-not (Test-Path $modulesPath)) {
 }
 
 # Define the target module directory
-$targetModulePath = Join-Path $modulesPath "Video"
+$targetModulePath = Join-Path $modulesPath "VideoUtility"
 
 # Check if module already exists
 if (Test-Path $targetModulePath) {
@@ -64,32 +64,32 @@ if (Test-Path $targetModulePath) {
 
 try {
     # Copy module files
-    Write-Verbose "Installing Video module to: $targetModulePath"
+    Write-Verbose "Installing VideoUtility module to: $targetModulePath"
     Copy-Item -Path $scriptDir -Destination $targetModulePath -Recurse -Force
     
     # Verify installation
-    if (Test-Path (Join-Path $targetModulePath "Video.psd1")) {
-        Write-Host "Video module installed successfully!" -ForegroundColor Green
+    if (Test-Path (Join-Path $targetModulePath "VideoUtility.psd1")) {
+        Write-Host "VideoUtility module installed successfully!" -ForegroundColor Green
         Write-Host "Module location: $targetModulePath" -ForegroundColor Cyan
         
         # Test module import
         Write-Verbose "Testing module import"
-        Import-Module Video -Force -ErrorAction Stop
+        Import-Module VideoUtility -Force -ErrorAction Stop
         Write-Host "Module import test successful!" -ForegroundColor Green
         
         # Show available functions
-        $functions = Get-Command -Module Video
+        $functions = Get-Command -Module VideoUtility
         if ($functions) {
             Write-Host "Available functions:" -ForegroundColor Yellow
             $functions | ForEach-Object { Write-Host "  - $($_.Name)" -ForegroundColor White }
         }
         
-        Write-Host "`nTo use the module, run: Import-Module Video" -ForegroundColor Cyan
+        Write-Host "`nTo use the module, run: Import-Module VideoUtility" -ForegroundColor Cyan
     } else {
         throw "Module manifest not found after installation"
     }
 }
 catch {
-    Write-Error "Failed to install Video module: $($_.Exception.Message)"
+    Write-Error "Failed to install VideoUtility module: $($_.Exception.Message)"
     throw
 } 
