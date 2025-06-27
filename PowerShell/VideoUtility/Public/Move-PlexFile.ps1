@@ -38,10 +38,10 @@ function Move-PlexFile {
     )
 
     if (-not (Test-Path -Path $Destination)) {
-        Write-Error "Destination folder does not exist" -ErrorAction Stop
+        Write-Error 'Destination folder does not exist' -ErrorAction Stop
     }
     if (-not (Test-Path -Path $Source)) {
-        Write-Error "Source folder does not exist" -ErrorAction Stop
+        Write-Error 'Source folder does not exist' -ErrorAction Stop
     }
 
     $plexLayout = @{
@@ -55,7 +55,7 @@ function Move-PlexFile {
         'Other'             = 'other'
     }
 
-    Write-Information "Moving bonus content to Plex folders"
+    Write-Information 'Moving bonus content to Plex folders'
     $filesMoved = 0
     foreach ($folder in $plexLayout.Keys) {
         $fileSuffix = $plexLayout[$folder]
@@ -71,7 +71,8 @@ function Move-PlexFile {
 
     if ($filesMoved -eq 0) {
         Write-Warning "No bonus content files found to move in source directory $Source"
-    } else {
+    }
+    else {
         Write-Information "$filesMoved files moved to Plex folders" -InformationAction Continue
     }
 }

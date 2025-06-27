@@ -18,12 +18,15 @@ A PowerShell module for video file processing and Plex folder management. This m
 - MKVToolNix (for MKV processing functions)
 
 ### Easiest No-Fuss Install
+
 Run the quick install script `QuickInstall.ps1`. This removes any existing installation and installs the current version.
 
 ### Install
+
 Run the install script `Install.ps1`
 
 ### Uninstall
+
 Run the uninstall script `Uinstall.ps1`
 
 ## Module Structure
@@ -60,6 +63,7 @@ VideoFunctions/
 ### FFmpeg Functions
 
 #### `Get-FFMpegVersion`
+
 Retrieves the version of FFmpeg installed on the system.
 
 ```powershell
@@ -67,6 +71,7 @@ Get-FFMpegVersion
 ```
 
 #### `Invoke-FFProbe`
+
 Runs FFprobe with specified arguments and returns parsed JSON output.
 
 ```powershell
@@ -76,6 +81,7 @@ Invoke-FFProbe '-show_streams', 'video.mp4'
 ### MKV Functions
 
 #### `Get-MkvTrack`
+
 Extracts a single track from an MKV file.
 
 ```powershell
@@ -83,6 +89,7 @@ Get-MkvTrack 'Movie.mkv' 2 'en.sdh.sup'
 ```
 
 #### `Get-MkvTracks`
+
 Extracts multiple tracks from an MKV file.
 
 ```powershell
@@ -90,6 +97,7 @@ Get-MkvTracks 'Movie.mkv' (2,3) 'ac3'
 ```
 
 #### `Get-MkvTrackAll`
+
 Extracts the same track from multiple MKV files.
 
 ```powershell
@@ -99,6 +107,7 @@ Get-MkvTrackAll ('Movie.mkv','Film.mkv') 2 'en.sdh.sup'
 ### Media Analysis Functions
 
 #### `Get-MediaStreams`
+
 Retrieves and filters media streams from a file.
 
 ```powershell
@@ -112,6 +121,7 @@ Get-MediaStreams 'video.mp4' -Type Subtitle -Language 'eng'
 ### Plex Functions
 
 #### `Add-PlexFolders`
+
 Creates the standard Plex bonus content folder structure.
 
 ```powershell
@@ -119,6 +129,7 @@ Add-PlexFolders 'C:\plex\movies\My Movie'
 ```
 
 #### `Move-PlexFiles`
+
 Moves bonus content files to appropriate Plex folders.
 
 ```powershell
@@ -126,6 +137,7 @@ Move-PlexFiles 'C:\plex\movies\My Movie'
 ```
 
 #### `Remove-PlexEmptyFolders`
+
 Removes empty Plex bonus content folders.
 
 ```powershell
@@ -133,6 +145,7 @@ Remove-PlexEmptyFolders 'C:\plex\movies\My Movie'
 ```
 
 #### `Invoke-PlexFileOperations`
+
 Performs all Plex organization operations in sequence.
 
 ```powershell
@@ -210,6 +223,7 @@ The installation script provides the following features:
 - **WhatIf Support**: Preview installation without executing
 
 **Parameters:**
+
 - `-Scope`: 'CurrentUser' (default) or 'AllUsers'
 - `-Force`: Overwrite existing installation
 - `-WhatIf`: Preview installation
@@ -226,6 +240,7 @@ The uninstallation script provides the following features:
 - **Safety**: Prompts for confirmation by default
 
 **Parameters:**
+
 - `-Scope`: 'CurrentUser', 'AllUsers', or 'All' (default)
 - `-Force`: Skip confirmation prompts
 - `-WhatIf`: Preview uninstallation
@@ -242,4 +257,3 @@ The uninstallation script provides the following features:
 ## Version History
 
 [Version History](VERSION.md)
-

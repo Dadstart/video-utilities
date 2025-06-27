@@ -111,7 +111,8 @@ function Export-MediaStream {
         if ([System.IO.Path]::IsPathRooted($OutputPath)) {
             # Absolute path - use as is
             $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
-        } else {
+        }
+        else {
             # Relative path - resolve relative to current working directory
             $OutputPath = Join-Path (Get-Location) $OutputPath
             $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
@@ -122,7 +123,7 @@ function Export-MediaStream {
         $outputDir = Split-Path $OutputPath -Parent
         if ($outputDir -and -not (Test-Path $outputDir)) {
             Write-Verbose "Creating output directory: $outputDir"
-            if ($PSCmdlet.ShouldProcess($outputDir, "Create directory")) {
+            if ($PSCmdlet.ShouldProcess($outputDir, 'Create directory')) {
                 New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
             }
         }
@@ -131,7 +132,8 @@ function Export-MediaStream {
         if (Test-Path $OutputPath) {
             if (-not $Force) {
                 Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite." -ErrorAction Stop
-            } else {
+            }
+            else {
                 Write-Verbose "Overwriting existing file: $OutputPath"
             }
         }
@@ -142,7 +144,8 @@ function Export-MediaStream {
 
         if ($Type -eq 'None') {
             $mapValue = "0:$Index"
-        } else {
+        }
+        else {
             # Stream type mapping
             $streamFilter = switch ($Type) {
                 'Audio' { 'a' }
@@ -156,7 +159,7 @@ function Export-MediaStream {
 
         $ffmpegArgs = @(
             '-i', $InputPath,
-            '-y',  # Overwrite output files
+            '-y', # Overwrite output files
             '-map', $mapValue,
             '-c', 'copy',
             $OutputPath
@@ -180,7 +183,7 @@ function Export-MediaStream {
 
                 Invoke-FFMpeg $ffmpegArgs
 
-                Write-Progress -Activity $progressActivity -Status "Complete" -PercentComplete 100
+                Write-Progress -Activity $progressActivity -Status 'Complete' -PercentComplete 100
                 Write-Verbose "Successfully exported stream to: $OutputPath"
             }
             catch {

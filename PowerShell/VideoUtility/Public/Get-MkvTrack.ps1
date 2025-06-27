@@ -57,6 +57,6 @@ function Get-MkvTrack {
         Write-Error "Failed to extract track (Exit code: $LASTEXITCODE)"
     }
     else {
-        Write-Information "Complete" -InformationAction Continue
+        Write-Information 'Complete' -InformationAction Continue
     }
 }

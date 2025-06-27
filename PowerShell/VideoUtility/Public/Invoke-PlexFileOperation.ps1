@@ -42,10 +42,10 @@ function Invoke-PlexFileOperation {
 
     try {
         if (-not (Test-Path -Path $Destination)) {
-            Write-Error "Destination folder does not exist" -ErrorAction Stop
+            Write-Error 'Destination folder does not exist' -ErrorAction Stop
         }
         if (-not (Test-Path -Path $Source)) {
-            Write-Error "Source folder does not exist" -ErrorAction Stop
+            Write-Error 'Source folder does not exist' -ErrorAction Stop
         }
 
         Add-PlexFolder $Destination

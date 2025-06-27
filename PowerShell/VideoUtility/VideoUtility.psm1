@@ -19,17 +19,17 @@
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Load all private functions first
-$privatePath = Join-Path $scriptPath "Private"
+$privatePath = Join-Path $scriptPath 'Private'
 if (Test-Path $privatePath) {
-    Get-ChildItem -Path $privatePath -Filter "*.ps1" | ForEach-Object {
+    Get-ChildItem -Path $privatePath -Filter '*.ps1' | ForEach-Object {
         . $_.FullName
     }
 }
 
 # Load all public functions
-$publicPath = Join-Path $scriptPath "Public"
+$publicPath = Join-Path $scriptPath 'Public'
 if (Test-Path $publicPath) {
-    Get-ChildItem -Path $publicPath -Filter "*.ps1" | ForEach-Object {
+    Get-ChildItem -Path $publicPath -Filter '*.ps1' | ForEach-Object {
         . $_.FullName
     }
 }

@@ -21,13 +21,14 @@ param()
 
 # Determine the modules directory
 $modulesPath = if ($IsWindows) {
-    Join-Path $env:USERPROFILE "Documents\PowerShell\Modules"
-} else {
-    Join-Path $HOME ".local/share/powershell/Modules"
+    Join-Path $env:USERPROFILE 'Documents\PowerShell\Modules'
+}
+else {
+    Join-Path $HOME '.local/share/powershell/Modules'
 }
 
 # Define the target module directory
-$targetModulePath = Join-Path $modulesPath "VideoUtility"
+$targetModulePath = Join-Path $modulesPath 'VideoUtility'
 
 # Check if module exists
 if (-not (Test-Path $targetModulePath)) {
@@ -38,7 +39,7 @@ if (-not (Test-Path $targetModulePath)) {
 try {
     # Remove the module if it's currently loaded
     if (Get-Module -Name VideoUtility -ErrorAction SilentlyContinue) {
-        Write-Verbose "Removing loaded VideoUtility module"
+        Write-Verbose 'Removing loaded VideoUtility module'
         Remove-Module -Name VideoUtility -Force -ErrorAction SilentlyContinue
     }
     
@@ -46,7 +47,7 @@ try {
     Write-Verbose "Removing VideoUtility module from: $targetModulePath"
     Remove-Item -Path $targetModulePath -Recurse -Force
     
-    Write-Host "VideoUtility module uninstalled successfully!" -ForegroundColor Green
+    Write-Host 'VideoUtility module uninstalled successfully!' -ForegroundColor Green
 }
 catch {
     Write-Error "Failed to uninstall VideoUtility module: $($_.Exception.Message)"
