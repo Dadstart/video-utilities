@@ -67,7 +67,8 @@ function Get-MediaStreams {
     if ([System.IO.Path]::IsPathRooted($Path)) {
         # Absolute path - use as is
         $Path = [System.IO.Path]::GetFullPath($Path)
-    } else {
+    }
+    else {
         # Relative path - resolve relative to current working directory
         $Path = Join-Path (Get-Location) $Path
         $Path = [System.IO.Path]::GetFullPath($Path)

@@ -50,13 +50,13 @@ function Write-InstallationMessage {
 
     # Check if message should be displayed based on verbosity level
     $shouldDisplay = switch ($VerbosityLevel) {
-        'Silent'   { $Type -eq 'Error' }
-        'Error'    { $Type -in @('Error') }
-        'Warning'  { $Type -in @('Error', 'Warning') }
-        'Info'     { $Type -in @('Error', 'Warning', 'Info') }
-        'Success'  { $Type -in @('Error', 'Warning', 'Info', 'Success') }
-        'All'      { $true }
-        default    { $true }
+        'Silent' { $Type -eq 'Error' }
+        'Error' { $Type -in @('Error') }
+        'Warning' { $Type -in @('Error', 'Warning') }
+        'Info' { $Type -in @('Error', 'Warning', 'Info') }
+        'Success' { $Type -in @('Error', 'Warning', 'Info', 'Success') }
+        'All' { $true }
+        default { $true }
     }
 
     if (-not $shouldDisplay) {
@@ -65,10 +65,10 @@ function Write-InstallationMessage {
 
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     switch ($Type) {
-        'Info'    { Write-Information "[$timestamp] INFO: $Message" }
+        'Info' { Write-Information "[$timestamp] INFO: $Message" }
         'Success' { Write-Information "[$timestamp] SUCCESS: $Message" }
         'Warning' { Write-Warning "[$timestamp] WARNING: $Message" }
-        'Error'   { Write-Error "[$timestamp] ERROR: $Message" }
+        'Error' { Write-Error "[$timestamp] ERROR: $Message" }
     }
 }
 
@@ -94,13 +94,16 @@ function Get-ModuleInstallPath {
     if ($Scope -eq 'AllUsers') {
         if ($PSVersionTable.PSEdition -eq 'Core') {
             return "$env:ProgramFiles\PowerShell\Modules"
-        } else {
+        }
+        else {
             return "$env:ProgramFiles\WindowsPowerShell\Modules"
         }
-    } else {
+    }
+    else {
         if ($PSVersionTable.PSEdition -eq 'Core') {
             return "$env:USERPROFILE\Documents\PowerShell\Modules"
-        } else {
+        }
+        else {
             return "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"
         }
     }
@@ -121,7 +124,8 @@ function Get-ModulePath {
     if ($Scope -in @('CurrentUser', 'All')) {
         if ($PSVersionTable.PSEdition -eq 'Core') {
             $paths += "$env:USERPROFILE\Documents\PowerShell\Modules\VideoFunctions"
-        } else {
+        }
+        else {
             $paths += "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\VideoFunctions"
         }
     }
@@ -130,7 +134,8 @@ function Get-ModulePath {
     if ($Scope -in @('AllUsers', 'All')) {
         if ($PSVersionTable.PSEdition -eq 'Core') {
             $paths += "$env:ProgramFiles\PowerShell\Modules\VideoFunctions"
-        } else {
+        }
+        else {
             $paths += "$env:ProgramFiles\WindowsPowerShell\Modules\VideoFunctions"
         }
     }
@@ -238,8 +243,8 @@ function Get-ModuleInfo {
         if (Test-Path $manifestPath) {
             $manifest = Import-PowerShellDataFile -Path $manifestPath
             return @{
-                Version = $manifest.ModuleVersion
-                Author = $manifest.Author
+                Version     = $manifest.ModuleVersion
+                Author      = $manifest.Author
                 Description = $manifest.Description
             }
         }
@@ -249,8 +254,8 @@ function Get-ModuleInfo {
     }
 
     return @{
-        Version = 'Unknown'
-        Author = 'Unknown'
+        Version     = 'Unknown'
+        Author      = 'Unknown'
         Description = 'Unknown'
     }
 }

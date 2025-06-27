@@ -1,12 +1,15 @@
 # video-utilities
+
 Utilities for working with video files.
 
 ---
 
-## VideoFunctions PowerShell Module:
+## VideoFunctions PowerShell Module
+
 A PowerShell module for video file processing and Plex folder management. This module provides functions for working with FFmpeg, MKV files, and Plex media organization.
 
 ### Installation
+
 See [full instructions](/PowerShell/VideoFunctions/README.md) for additional details.
 
 1. Clone or download this repository
@@ -23,4 +26,3 @@ See [full instructions](/PowerShell/VideoFunctions/README.md) for additional det
 ## License
 
 [Apache License](/LICENSE)
-

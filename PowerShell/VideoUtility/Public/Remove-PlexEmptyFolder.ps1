@@ -33,7 +33,7 @@ function Remove-PlexEmptyFolder {
     )
 
     if (-not (Test-Path -Path $Destination)) {
-        Write-Error "Destination folder does not exist" -ErrorAction Stop
+        Write-Error 'Destination folder does not exist' -ErrorAction Stop
     }
 
     $plexLayout = @{
@@ -47,7 +47,7 @@ function Remove-PlexEmptyFolder {
         'Other'             = 'other'
     }
 
-    Write-Information "Removing empty Plex folders"
+    Write-Information 'Removing empty Plex folders'
     $foldersDeleted = 0
     foreach ($folder in $plexLayout.Keys) {
         $path = Join-Path -Path $Destination -ChildPath $folder
@@ -57,7 +57,7 @@ function Remove-PlexEmptyFolder {
         }
 
         if ((Get-ChildItem $path).Count -eq 0) {
-            if ($PSCmdlet.ShouldProcess($path, "Remove empty folder")) {
+            if ($PSCmdlet.ShouldProcess($path, 'Remove empty folder')) {
                 $foldersDeleted++
                 Remove-Item -Path $path
             }
@@ -66,7 +66,8 @@ function Remove-PlexEmptyFolder {
 
     if ($foldersDeleted -eq 0) {
         Write-Warning "No empty Plex folders found to remove in '$Destination'"
-    } else {
+    }
+    else {
         Write-Information "$foldersDeleted empty Plex folders deleted"
     }
 }

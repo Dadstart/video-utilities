@@ -1,13 +1,13 @@
 # Run PSScriptAnalyzer on the VideoFunctions project
-Write-Host "Running PSScriptAnalyzer on VideoFunctions project..." -ForegroundColor Green
+Write-Host 'Running PSScriptAnalyzer on VideoFunctions project...' -ForegroundColor Green
 
 # Analyze Public functions
 Write-Host "`nAnalyzing Public functions..." -ForegroundColor Yellow
-$publicResults = Invoke-ScriptAnalyzer -Path "PowerShell/VideoFunctions/Public/" -Settings "PSScriptAnalyzerSettings.psd1"
+$publicResults = Invoke-ScriptAnalyzer -Path 'PowerShell/VideoFunctions/Public/' -Settings 'PSScriptAnalyzerSettings.psd1'
 
 # Analyze Private functions
 Write-Host "`nAnalyzing Private functions..." -ForegroundColor Yellow
-$privateResults = Invoke-ScriptAnalyzer -Path "PowerShell/VideoFunctions/Private/" -Settings "PSScriptAnalyzerSettings.psd1"
+$privateResults = Invoke-ScriptAnalyzer -Path 'PowerShell/VideoFunctions/Private/' -Settings 'PSScriptAnalyzerSettings.psd1'
 
 # Combine results
 $allResults = $publicResults + $privateResults
@@ -32,9 +32,10 @@ if ($allResults.Count -gt 0) {
     $allResults | Format-Table -AutoSize
     
     # Save results to file
-    $resultsFile = "lint-results.csv"
+    $resultsFile = 'lint-results.csv'
     $allResults | Export-Csv -Path $resultsFile -NoTypeInformation
     Write-Host "`nDetailed results saved to: $resultsFile" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "`n✅ No issues found! Your code follows PowerShell best practices." -ForegroundColor Green
 } 

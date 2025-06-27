@@ -39,12 +39,12 @@ function Invoke-Process {
     # Setup process start information
     # $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi = New-Object System.Diagnostics.ProcessStartInfo -Property @{
-        FileName     = $Name
-        CreateNoWindow = $true
-        UseShellExecute = $false
+        FileName               = $Name
+        CreateNoWindow         = $true
+        UseShellExecute        = $false
         RedirectStandardOutput = $true
-        RedirectStandardError = $true
-        WorkingDirectory = (Get-Location).Path
+        RedirectStandardError  = $true
+        WorkingDirectory       = (Get-Location).Path
     }
 
     foreach ($arg in $Arguments) {
@@ -72,7 +72,8 @@ function Invoke-Process {
     if ($process.ExitCode -ne 0) {
         Write-Warning "Process Failed`n`tExecutable: $Name`n`tArguments: $Arguments`n`tExit Code: $($process.ExitCode)`n`tError: $standardError"
         throw $standardError.Trim()
-    } elseif ($standardError.Length -gt 0) {
+    }
+    elseif ($standardError.Length -gt 0) {
         Write-Warning "Process Error Output: $($standardError.Trim())"
     }
 

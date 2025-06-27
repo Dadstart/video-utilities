@@ -63,12 +63,13 @@ function Get-MediaStream {
 
     if ($Type -eq [StreamType]::All) {
         $codecFilter = $null
-    } else {
+    }
+    else {
         $t = $Type.ToString().Substring(0, 1).ToLowerInvariant()
         $codecFilter = "$t`:"
     }
 
-    $streams = Invoke-FFProbe "-select_streams", "$codecFilter$Index", "-show_streams", $Name
+    $streams = Invoke-FFProbe '-select_streams', "$codecFilter$Index", '-show_streams', $Name
     $stream = $streams.streams[0]
     Write-Verbose "Retrieved $Type stream at index $Index from $Name (type: $($stream.codec_type))."
     return $stream
