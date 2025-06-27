@@ -77,6 +77,7 @@ FunctionsToExport = @(
     'Get-MkvTrack',
     'Get-MkvTrackAll',
     'Get-MkvTracks',
+    'Add-PlexFolder',
     'Invoke-PlexFileOperation',
     'Move-PlexFile',
     'Remove-PlexEmptyFolder'
