@@ -106,4 +106,16 @@
             Enable = $false  # Module-level variables are acceptable
         }
     }
-} 
+    Formatting = @{
+        PSUseConsistentWhitespace = @{
+            Enable = $true
+            CheckInnerBrace = $true
+            CheckOpenBrace  = $true
+            CheckOpenParen  = $true
+            CheckOperator   = $true
+            CheckPipe       = $true
+        }
+
+        AssignmentOperatorAlignment = 'None'
+    }
+}
