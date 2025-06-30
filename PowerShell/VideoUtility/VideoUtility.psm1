@@ -36,7 +36,9 @@ if (Test-Path $publicPath) {
 
 # Export public functions
 Export-ModuleMember -Function @(
+    'Add-MediaStream',
     'Export-MediaStream',
+    'Export-MediaStreams',
     'Get-FFMpegVersion',
     'Get-MediaStream',
     'Get-MediaStreams',
