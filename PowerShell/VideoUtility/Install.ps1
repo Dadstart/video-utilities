@@ -61,13 +61,6 @@ try {
     Import-Module VideoUtility -Force -ErrorAction Stop
     Write-Host 'VideoUtility module installed successfully!' -ForegroundColor Green
     Write-Host "Module location: $moduleRoot" -ForegroundColor Cyan
-    
-    # Show available functions
-    $functions = Get-Command -Module VideoUtility
-    if ($functions) {
-        Write-Host 'Available functions:' -ForegroundColor Yellow
-        $functions | ForEach-Object { Write-Host "  - $($_.Name)" -ForegroundColor White }
-    }
 }
 catch {
     Write-Error "Failed to install VideoUtility module: $($_.Exception.Message)"
