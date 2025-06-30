@@ -174,7 +174,7 @@ function Export-MediaStream {
             return
         }
 
-        $progressActivity = "Exporting $Type Stream from $InputPath"
+        $progressActivity = "Exporting $Type Stream $Index from $InputPath"
         if ($PSCmdlet.ShouldProcess($OutputPath, $operation)) {
             try {
                 Write-Progress -Activity $progressActivity -Status "Processing $InputPath" -PercentComplete 0
