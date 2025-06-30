@@ -52,13 +52,6 @@ if ($isAlreadyLoaded -and -not $Force) {
     Write-Host 'VideoUtility module is already available!' -ForegroundColor Green
     Write-Host "Module location: $moduleRoot" -ForegroundColor Cyan
     
-    # Show available functions
-    $functions = Get-Command -Module VideoUtility
-    if ($functions) {
-        Write-Host 'Available functions:' -ForegroundColor Yellow
-        $functions | ForEach-Object { Write-Host "  - $($_.Name)" -ForegroundColor White }
-    }
-    
     return
 }
 
