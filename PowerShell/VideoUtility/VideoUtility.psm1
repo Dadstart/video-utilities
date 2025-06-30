@@ -10,8 +10,8 @@
 
 .NOTES
     Version: 0.2.0
-    Author: Andrew Bishop
-    Copyright: Copyright © Andrew Bishop
+    Author: Dadstart
+    Copyright: Copyright © Dadstart
     PowerShell Version: 7.0+
 #>
 
