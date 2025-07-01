@@ -46,7 +46,7 @@ function Get-MediaStreams {
     [CmdletBinding()]
     [OutputType([object[]])]
     param (
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline)]
         [string]$Path,
         [Parameter(Position = 1)]
         [StreamType]$Type = [StreamType]::All
@@ -92,21 +92,15 @@ function Get-MediaStreams {
             $matchesType = ($Type -eq [StreamType]::All) -or ($stream.codec_type -eq $streamTypeString)
             
             if ($matchesType) {
-                Write-Verbose "Processing stream $($stream.index) of type $($stream.codec_type)"
-                
-                # Extract language from tags, default to empty string if not present
-                $language = if ($stream.tags -and $stream.tags.language) { 
-                    $stream.tags.language 
-                } else { 
-                    "" 
-                }
+                Write-Verbose "Processing stream $($stream.index) of type $($stream.codec_type)"                
 
                 # Create stream object with required properties
                 $streamObj = [PSCustomObject]@{
-                    Index       = [int]$stream.index - 1
+                    Index       = [int]$stream.index
                     CodecType   = [string]$stream.codec_type
                     CodecName   = [string]$stream.codec_name
-                    Language    = [string]$language
+                    Language    = [string]$stream.tags.language
+                    Title       = [string]$stream.tags.title    
                     Disposition = $stream.disposition
                     Tags        = $stream.tags
                 }

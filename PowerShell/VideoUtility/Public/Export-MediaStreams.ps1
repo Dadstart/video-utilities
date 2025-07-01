@@ -13,10 +13,10 @@ function Export-MediaStreams {
     process {
         $inputPath = Resolve-Path $InputFile
         Write-Verbose "InputPath: $($inputPath.Path)"
-        Get-MediaStreams -Path $inputPath.Path -Type Audio | ForEach-Object {
-            $extension = ".$($_.Index).$($_.CodecName)"
+        Get-MediaStreams -Path $inputPath.Path -Type $Type | ForEach-Object {
+            $extension = ".$($_.Index - 1).$($_.CodecName)"
             Write-Verbose "Extension: $extension"
-            $outputPath = (Resolve-Path $OutputDirectory).Path, [System.IO.Path]::GetFileNameWithoutExtension($inputFile), $extension -join ''
+            $outputPath = (Resolve-Path $OutputDirectory).Path, '\', [System.IO.Path]::GetFileNameWithoutExtension($inputFile), $extension -join ''
             Write-Verbose "OutputPath: $outputPath"
 
             if (Test-Path $outputPath) {
@@ -24,8 +24,8 @@ function Export-MediaStreams {
                 continue
             }
 
-            Write-Host "Exporting $Type stream #$($_.Index) to $outputPath"
-            Export-MediaStream -InputPath ($inputPath.Path) -OutputPath $outputPath -Type $Type -Index $_.Index
+            Write-Host "Exporting $Type stream #$($_.Index - 1) to $outputPath"
+            Export-MediaStream -InputPath ($inputPath.Path) -OutputPath $outputPath -Type $Type -Index ($_.Index - 1)
         }
     }
 }

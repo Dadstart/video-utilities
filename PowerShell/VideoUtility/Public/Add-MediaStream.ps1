@@ -91,43 +91,99 @@ function Add-MediaStream {
         [string]$OutputPath
     )
 
+    Write-Verbose "Adding $($Streams.Count) streams to $OutputPath"
+
     # Build input arguments
-    $inputs = [System.Collections.ArrayList]::new()
-    $maps = [System.Collections.ArrayList]::new()
-    $metadata = [System.Collections.ArrayList]::new()
+    <# Final arguments will look something like this:
+        ffmpeg
+            -i "$InputPath"
+            -i "$($Streams[0].File)"
+            -i "$($Streams[1].File)"
+            -map 0:v:0
+            -map 1:a:0
+            -map 2:a:0
+            [... for each stream]
+            -c copy
+            -metadata:s:a:0 title="$($Streams[0].Title)" -metadata:s:a:0 language=$($Streams[0].Language)
+            -metadata:s:a:1 title="$($Streams[1].Title)" -metadata:s:a:1 language=$($Streams[1].Language)
+            [... for each stream]
+            "$OutputPath"
+      #>
+
+    $inputs = [System.Collections.Generic.List[string]]::new()
+    $maps = [System.Collections.Generic.List[string]]::new()
+    $metadata = [System.Collections.Generic.List[string]]::new()
     
+    # Add main video file as input #0
+    # -i specifies an input file
     $inputs.Add('-i')
-    $inputs.Add("`"$InputPath`"")
+    $inputs.Add($InputPath)
+    
+    # Map the video stream from input #0
+    # -map 0:v maps the video stream from the first input file (index 0)
     $maps.Add('-map')
     $maps.Add('0:v')
 
     for ($i = 0; $i -lt $Streams.Count; $i++) {
         $stream = $Streams[$i]
+        Write-Verbose "Adding $($stream.Type) stream #$i to $OutputPath. Title: $($stream.Title) Language: $($stream.Language)"
+        $stream | fl *
 
+        # Add additional stream file as input #(i+1)
+        # Each additional file becomes input #1, #2, #3, etc.
         $inputs.Add('-i')
-        $inputs.Add("`"$($stream.File)`"")
+        $inputs.Add($stream.File)
 
-        $streamType = $stream.Type.ToString().ToLowerInvariant()
+        # Convert stream type to FFmpeg short form
+        # FFmpeg uses single letters: 'a' for audio, 'v' for video, 's' for subtitle
+        $ffmpegType = switch ($stream.Type) {
+            'Audio' { 'a' }
+            'Video' { 'v' }
+            'Subtitle' { 's' }
+            default { throw "Invalid stream type: $($stream.Type)" }
+        }
+        
+        # Map the stream from input #(i+1)
+        # -map 1:a:0 maps the first audio stream from the second input file
+        # -map 2:a:0 maps the second audio stream from the third input file
+        # etc.
         $maps.Add('-map')
-        $maps.Add("$i`:$streamType")
+        $maps.Add("$($i + 1):$ffmpegType:0")
 
-        $metadata.Add("-metadata:s:$streamType`:$i language=$($stream.Language)")
-        $metadata.Add("-metadata:s:$streamType`:$i title=`"$($stream.Title)`"")
+        # Add metadata for this stream
+        # -metadata:s:a:0 key=value sets metadata for the first audio stream in the output
+        # -metadata:s:a:1 key=value sets metadata for the second audio stream in the output
+        $metadata.Add("-metadata:s:$ffmpegType`:$i")
+        $metadata.Add("language=$($stream.Language)")
+        $metadata.Add("-metadata:s:$ffmpegType`:$i") 
+#        $metadata.Add("title=`"$($stream.Title)`"")
+        $metadata.Add("title=$($stream.Title)")
     }
 
     # Assemble the final ffmpeg command
-    $args = [System.Collections.ArrayList]::new()
+    $args = [System.Collections.Generic.List[string]]::new()
+    
+    # Add all input files (-i arguments)
     $args.AddRange($inputs)
+    
+    # Add all stream mappings (-map arguments)
     $args.AddRange($maps)
-    $args.Add('-c:v')
+    
+    # Copy all streams without re-encoding to preserve quality
+    # -c copy is equivalent to -c:v copy -c:a copy -c:s copy
+    $args.Add('-c')
     $args.Add('copy')
-    $args.Add('-c:a')
-    $args.Add('copy')
-    $args.Add('-shortest')
+    
+    # Force overwrite output file without prompting
+    $args.Add('-y')
+    
+    # Add all metadata tags
     $args.AddRange($metadata)
-    $args.Add("`"$OutputPath`"")
+    
+    # Add the output file path
+    $args.Add($OutputPath)
 
-    Write-Host "Adding $($Streams.Count) streams to $OutputPath"
-    Write-Verbose "FFmpeg command: ffmpeg $($args -join ' ')"
-    Invoke-FFMpeg $args.ToArray()
+    $argsArray = $args.ToArray()
+    Write-Verbose "FFmpeg command: ffmpeg $($argsArray -join ' ')"
+    Invoke-FFMpeg $argsArray
 }
