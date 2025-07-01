@@ -22,9 +22,9 @@ param(
 #Requires -Version 7.0
 
 # Remove the module if it's currently loaded
-if (Get-Module -Name VideoUtility -ErrorAction SilentlyContinue -Verbose:$VerbosePreference) {
+if (Get-Module -Name VideoUtility -ErrorAction SilentlyContinue -Verbose:$PSBoundParameters['Verbose'].IsPresent) {
     Write-Verbose 'Removing loaded VideoUtility module'
-    Remove-Module -Name VideoUtility -Force:$Force -ErrorAction SilentlyContinue -Verbose:$VerbosePreference
+    Remove-Module -Name VideoUtility -Force:$Force -ErrorAction SilentlyContinue -Verbose:$PSBoundParameters['Verbose'].IsPresent
     Write-Host 'VideoUtility module uninstalled successfully!' -ForegroundColor Green
     Write-Host 'The module is no longer available in this session.' -ForegroundColor Yellow
 }
