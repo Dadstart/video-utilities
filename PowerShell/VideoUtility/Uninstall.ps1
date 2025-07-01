@@ -15,14 +15,16 @@
 #>
 
 [CmdletBinding()]
-param()
+param(
+    [switch]$Force
+)
 
 #Requires -Version 7.0
 
 # Remove the module if it's currently loaded
-if (Get-Module -Name VideoUtility -ErrorAction SilentlyContinue) {
+if (Get-Module -Name VideoUtility -ErrorAction SilentlyContinue -Verbose:$VerbosePreference) {
     Write-Verbose 'Removing loaded VideoUtility module'
-    Remove-Module -Name VideoUtility -Force -ErrorAction SilentlyContinue
+    Remove-Module -Name VideoUtility -Force:$Force -ErrorAction SilentlyContinue -Verbose:$VerbosePreference
     Write-Host 'VideoUtility module uninstalled successfully!' -ForegroundColor Green
     Write-Host 'The module is no longer available in this session.' -ForegroundColor Yellow
 }

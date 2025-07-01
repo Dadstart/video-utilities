@@ -25,7 +25,6 @@
 
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $false)]
     [switch]$Force
 )
 
@@ -43,7 +42,7 @@ if (-not (Test-Path $manifestPath)) {
 }
 
 # Check if module is already loaded
-$isAlreadyLoaded = Get-Module -Name VideoUtility -ErrorAction SilentlyContinue
+$isAlreadyLoaded = Get-Module -Name VideoUtility -ErrorAction SilentlyContinue -Verbose:$Verbose
 
 if ($isAlreadyLoaded -and -not $Force) {
     Write-Warning "VideoUtility module is already loaded"
@@ -58,9 +57,10 @@ if ($isAlreadyLoaded -and -not $Force) {
 try {
     # Import the module
     Write-Verbose 'Importing VideoUtility module'
-    Import-Module VideoUtility -Force -ErrorAction Stop
+    $modulePath = Join-Path $moduleRoot 'VideoUtility'
+    Import-Module $modulePath -Force:$Force -ErrorAction Stop -Verbose:$VerbosePreference
     Write-Host 'VideoUtility module installed successfully!' -ForegroundColor Green
-    Write-Host "Module location: $moduleRoot" -ForegroundColor Cyan
+    Write-Verbose "Module location: $moduleRoot"
 }
 catch {
     Write-Error "Failed to install VideoUtility module: $($_.Exception.Message)"

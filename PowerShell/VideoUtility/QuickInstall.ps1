@@ -16,7 +16,9 @@
 #>
 
 [CmdletBinding()]
-param()
+param(
+    [switch]$Force
+)
 
 #Requires -Version 7.0
 
@@ -29,14 +31,17 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $uninstallScript = Join-Path $scriptDir 'Uninstall.ps1'
 if (Test-Path $uninstallScript) {
     Write-Verbose 'Running uninstall script to clean up existing installation'
-    & $uninstallScript
+    & $uninstallScript -Force:$Force -Verbose:$VerbosePreference
+} else {
+    Write-Error "Uninstall script not found: $uninstallScript"
+    throw 'Uninstall script not found'
 }
 
 # Run install script
 $installScript = Join-Path $scriptDir 'Install.ps1'
 if (Test-Path $installScript) {
     Write-Verbose 'Running install script'
-    & $installScript -Force
+    & $installScript -Force:$Force -Verbose:$VerbosePreference
 }
 else {
     Write-Error "Install script not found: $installScript"
