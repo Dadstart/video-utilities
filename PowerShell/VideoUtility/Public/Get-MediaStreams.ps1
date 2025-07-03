@@ -51,68 +51,79 @@ function Get-MediaStreams {
         [Parameter(Position = 1)]
         [StreamType]$Type = [StreamType]::All
     )
-
-    # Resolve path to absolute path
-    if ([System.IO.Path]::IsPathRooted($Path)) {
-        $resolvedPath = $Path
-    }
-    else {
-        $resolvedPath = Join-Path (Get-Location) $Path
+    begin {
+        Write-Debug "Parameters: $($PSBoundParameters | ConvertTo-Json)"
+        $streamTypeString = $Type.ToString().ToLowerInvariant()
     }
 
-    # Validate the file path before proceeding
-    if (-not (Test-Path -Path $resolvedPath -PathType Leaf)) {
-        Write-Error "The file path '$resolvedPath' does not exist or is not a valid file." -ErrorAction Stop
-    }
+    process {
+        # Resolve path to absolute path
+        if ([System.IO.Path]::IsPathRooted($Path)) {
+            $resolvedPath = $Path
+        }
+        else {
+            $resolvedPath = Join-Path (Get-Location) $Path
+        }
 
-    Write-Verbose "Processing file: $resolvedPath"
+        # Validate the file path before proceeding
+        if (-not (Test-Path -Path $resolvedPath -PathType Leaf)) {
+            Write-Error "The file path '$resolvedPath' does not exist or is not a valid file." -ErrorAction Stop
+        }
 
-    try {
-        # Get all streams from the file using ffprobe
-        Write-Verbose "Running ffprobe to get stream information"
-        $ffprobeResult = Invoke-FFProbe '-show_streams', $resolvedPath
+        Write-Verbose "Processing file: $resolvedPath"
+
+        try {
+            # Get all streams from the file using ffprobe
+            Write-Verbose 'Running ffprobe to get stream information'
+            $ffprobeResult = Invoke-FFProbe '-show_streams', $resolvedPath
         
-        # Get streams from the result object
-        $allStreams = $ffprobeResult.streams
+            # Get streams from the result object
+            $allStreams = $ffprobeResult.streams
 
-        # Return empty array if no streams found
-        if (-not $allStreams) {
-            Write-Verbose "No streams found in file '$resolvedPath'"
+            # Return empty array if no streams found
+            if (-not $allStreams) {
+                Write-Verbose "No streams found in file '$resolvedPath'"
+                return @()
+            }
+
+            Write-Verbose "Found $($allStreams.Count) total streams"
+
+            # Filter streams based on type
+            $filteredStreams = @()
+            $typeIndex = 0
+
+            foreach ($stream in $allStreams) {
+                # Check if stream matches the requested type
+                $matchesType = ($Type -eq [StreamType]::All) -or ($stream.codec_type -eq $streamTypeString)
+            
+                if ($matchesType) {
+                    Write-Verbose "Processing stream $($stream.index) of type $($stream.codec_type)"                
+
+                    # Create stream object with required properties
+                    $streamObj = [PSCustomObject]@{
+                        Index       = [int]$stream.index
+                        CodecType   = [string]$stream.codec_type
+                        CodecName   = [string]$stream.codec_name
+                        TypeIndex   = [int]$typeIndex
+                        Language    = [string]$stream.tags.language
+                        Title       = [string]$stream.tags.title    
+                        Disposition = $stream.disposition
+                        Tags        = $stream.tags
+                    }
+
+                    $filteredStreams += $streamObj
+                    $typeIndex++
+                }
+            }
+
+            Write-Verbose "Returning $($filteredStreams.Count) filtered streams of type '$Type'"
+            return $filteredStreams
+        }
+        catch {
+            Write-Error "Failed to get media streams from '$resolvedPath': $($_.Exception.Message)" -ErrorAction Stop
             return @()
         }
-
-        Write-Verbose "Found $($allStreams.Count) total streams"
-
-        # Filter streams based on type
-        $filteredStreams = @()
-        $streamTypeString = $Type.ToString().ToLowerInvariant()
-
-        foreach ($stream in $allStreams) {
-            # Check if stream matches the requested type
-            $matchesType = ($Type -eq [StreamType]::All) -or ($stream.codec_type -eq $streamTypeString)
-            
-            if ($matchesType) {
-                Write-Verbose "Processing stream $($stream.index) of type $($stream.codec_type)"                
-
-                # Create stream object with required properties
-                $streamObj = [PSCustomObject]@{
-                    Index       = [int]$stream.index
-                    CodecType   = [string]$stream.codec_type
-                    CodecName   = [string]$stream.codec_name
-                    Language    = [string]$stream.tags.language
-                    Title       = [string]$stream.tags.title    
-                    Disposition = $stream.disposition
-                    Tags        = $stream.tags
-                }
-
-                $filteredStreams += $streamObj
-            }
-        }
-
-        Write-Verbose "Returning $($filteredStreams.Count) filtered streams of type '$Type'"
-        return $filteredStreams
     }
-    catch {
-        Write-Error "Failed to get media streams from '$resolvedPath': $($_.Exception.Message)" -ErrorAction Stop
+    end {
     }
 }
