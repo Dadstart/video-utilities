@@ -51,30 +51,37 @@ function Invoke-FFProbe {
         [string[]]$Arguments
     )
 
-    # Check if ffmpeg is installed
-    Test-FFMpegInstalled -Throw | Out-Null
+    begin {
+        # Pass through verbose/debug preferences to called functions
+        $PSDefaultParameterValues['Invoke-Process:Verbose'] = $VerbosePreference
+        $PSDefaultParameterValues['Invoke-Process:Debug'] = $DebugPreference
+    }
+    process {
+        # Check if ffmpeg is installed
+        Test-FFMpegInstalled -Throw | Out-Null
 
-    $finalArguments = @('-v', 'error', '-of', 'json') + $Arguments
-    Write-Verbose "Invoke-FFProbe: Arguments: $($finalArguments -join ' ')"
-    $processResult = Invoke-Process ffprobe $finalArguments
-    Write-Debug "Invoke-FFProbe: Process Result: $($processResult)"
-    if ($processResult.ExitCode -ne 0) {
-        Write-Error "Invoke-FFProbe: Failed to execute ffprobe. Exit code: $($processResult.ExitCode)"
+        $finalArguments = @('-v', 'error', '-of', 'json') + $Arguments
+        Write-Verbose "Invoke-FFProbe: Arguments: $($finalArguments -join ' ')"
+        $processResult = Invoke-Process ffprobe $finalArguments
+        Write-Debug "Invoke-FFProbe: Process Result: $($processResult)"
+        if ($processResult.ExitCode -ne 0) {
+            Write-Error "Invoke-FFProbe: Failed to execute ffprobe. Exit code: $($processResult.ExitCode)"
+            $result = [PSCustomObject]@{
+                Json     = $null
+                Output   = $processResult.Output
+                Error    = $processResult.Error
+                ExitCode = $processResult.ExitCode
+            }
+            return $result
+        }
+
+        $json = $processResult.Output | ConvertFrom-Json
         $result = [PSCustomObject]@{
-            Json     = $null
+            Json     = $json
             Output   = $processResult.Output
             Error    = $processResult.Error
             ExitCode = $processResult.ExitCode
         }
         return $result
     }
-
-    $json = $processResult.Output | ConvertFrom-Json
-    $result = [PSCustomObject]@{
-        Json     = $json
-        Output   = $processResult.Output
-        Error    = $processResult.Error
-        ExitCode = $processResult.ExitCode
-    }
-    return $result
 }
