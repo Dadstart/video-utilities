@@ -54,9 +54,7 @@ function Invoke-Process {
         WorkingDirectory       = (Get-Location).Path
     }
 
-    foreach ($arg in $Arguments) {
-        [void]$psi.ArgumentList.Add($arg)
-    }
+    $psi.Arguments = $Arguments -join ' '
 
     Write-Verbose "Invoke-Process: Process Info: FileName: $($psi.FileName) Arguments: $($psi.ArgumentList)"
 
