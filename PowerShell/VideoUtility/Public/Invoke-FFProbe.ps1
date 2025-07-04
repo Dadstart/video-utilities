@@ -10,6 +10,13 @@ function Invoke-FFProbe {
     .PARAMETER Arguments
         Arguments to pass to ffprobe.
 
+    .RETURNVALUE
+        [PSCustomObject]@{
+            Output   = [string] (Standard Output)
+            Error    = [string] (Standard Error)
+            ExitCode = [int] (Exit Code)
+        }
+
     .EXAMPLE
         Invoke-FFProbe '-show_program_version'
 
@@ -41,8 +48,12 @@ function Invoke-FFProbe {
 
     $finalArguments = @('-v', 'error', '-of', 'json') + $Arguments
     Write-Verbose "Invoke-FFProbe: Arguments: $($finalArguments -join ' ')"
-    $json = Invoke-Process ffprobe $finalArguments
-    $result = $json | ConvertFrom-Json
+    $processResult = Invoke-Process ffprobe $finalArguments
+    if ($processResult.ExitCode -ne 0) {
+        Write-Error "Invoke-FFProbe: Failed to execute ffprobe. Exit code: $($processResult.ExitCode)"
+        return $null
+    }
 
+    $result = $processResult.Output | ConvertFrom-Json
     return $result
 }

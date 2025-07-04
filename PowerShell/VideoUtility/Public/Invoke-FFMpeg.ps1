@@ -11,6 +11,13 @@ function Invoke-FFMpeg {
     .PARAMETER Arguments
         Arguments to pass to ffmpeg.
 
+    .RETURNVALUE
+        [PSCustomObject]@{
+            Output   = [string] (Standard Output)
+            Error    = [string] (Standard Error)
+            ExitCode = [int] (Exit Code)
+        }
+
     .EXAMPLE
         Invoke-FFMpeg '-version'
 
