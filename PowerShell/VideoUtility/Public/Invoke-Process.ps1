@@ -13,6 +13,13 @@ function Invoke-Process {
     .PARAMETER Arguments
         The arguments to pass to the process.
 
+    .RETURNVALUE
+        [PSCustomObject]@{
+            Output   = [string] (Standard Output)
+            Error    = [string] (Standard Error)
+            ExitCode = [int] (Exit Code)
+        }
+
     .EXAMPLE
         Invoke-Process 'ffprobe' @('-version')
 
@@ -58,24 +65,29 @@ function Invoke-Process {
     $process.StartInfo = $psi
 
     # Start the process
-    Write-Verbose "Invoke-Process: Starting Process"
+    Write-Verbose 'Invoke-Process: Starting Process'
     $process.Start() | Out-Null
-    $standardOutput = $process.StandardOutput.ReadToEnd()
-    $standardError = $process.StandardError.ReadToEnd()
 
     # Wait for the process to exit
-    Write-Verbose "Invoke-Process: Waiting for Process to Exit"
+    Write-Verbose 'Invoke-Process: Waiting for Process to Exit'
     $process.WaitForExit()
     Write-Verbose "Invoke-Process: Process Exited (ExitCode: $($process.ExitCode))"
+
+    # Read output streams before closing the process
+    $standardOutput = $process.StandardOutput.ReadToEnd()
+    $standardError = $process.StandardError.ReadToEnd()
 
     # Check for errors
     if ($process.ExitCode -ne 0) {
         Write-Warning "Process Failed`n`tExecutable: $Name`n`tArguments: $Arguments`n`tExit Code: $($process.ExitCode)`n`tError: $standardError"
-        throw $standardError.Trim()
-    }
-    elseif ($standardError.Length -gt 0) {
-        Write-Warning "Process Error Output: $($standardError.Trim())"
     }
 
-    return $standardOutput
+    # Close the process to free up resources
+    $process.Close()
+    
+    return [PSCustomObject]@{
+        Output   = $standardOutput
+        Error    = $standardError
+        ExitCode = $process.ExitCode
+    }
 }
