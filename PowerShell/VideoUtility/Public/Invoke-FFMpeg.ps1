@@ -37,13 +37,20 @@ function Invoke-FFMpeg {
         [string[]]$Arguments
     )
 
-    # Check if ffmpeg is installed
-    Test-FFMpegInstalled -Throw | Out-Null
+    begin {
+        # Pass through verbose/debug preferences to called functions
+        $PSDefaultParameterValues['Invoke-Process:Verbose'] = $VerbosePreference
+        $PSDefaultParameterValues['Invoke-Process:Debug'] = $DebugPreference
+    }
+    process {
+        # Check if ffmpeg is installed
+        Test-FFMpegInstalled -Throw | Out-Null
 
-    $finalArguments = @('-v', 'error', '-hide_banner') + $Arguments
+        $finalArguments = @('-v', 'error', '-hide_banner') + $Arguments
 
-    Write-Verbose "Invoke-FFMpeg: Arguments: $($finalArguments -join ' ')"
-    $result = Invoke-Process ffmpeg $finalArguments
+        Write-Verbose "Invoke-FFMpeg: Arguments: $($finalArguments -join ' ')"
+        $result = Invoke-Process ffmpeg $finalArguments
 
-    return $result
+        return $result
+    }
 }
