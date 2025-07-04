@@ -69,8 +69,14 @@ function Get-MediaStream {
         $codecFilter = "$t`:"
     }
 
-    $streams = Invoke-FFProbe '-select_streams', "$codecFilter$Index", '-show_streams', $Name
-    $stream = $streams.streams[0]
+    $processResult = Invoke-FFProbe '-select_streams', "$codecFilter$Index", '-show_streams', $Name
+    if ($processResult.ExitCode) {
+        Write-Error "Get-MediaStream: Failed to get media stream. Exit code: $($processResult.ExitCode)"
+        return $null
+    }
+
+    $stream = $processResult.Json.streams[0]
+
     Write-Verbose "Retrieved $Type stream at index $Index from $Name (type: $($stream.codec_type))."
     return $stream
 }

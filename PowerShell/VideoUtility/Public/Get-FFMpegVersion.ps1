@@ -25,7 +25,11 @@ function Get-FFMpegVersion {
 
     Test-FFMpegInstalled -Throw | Out-Null
 
-    $result = Invoke-FFProbe '-show_program_version'
+    $processResult = Invoke-FFProbe '-show_program_version'
+    if ($processResult.ExitCode -ne 0) {
+        Write-Error "Get-FFMpegVersion: Failed to get ffmpeg version. Exit code: $($processResult.ExitCode)"
+        return $null
+    }
 
-    return $result.program_version.version
+    return $processResult.Json.program_version.version
 }

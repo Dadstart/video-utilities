@@ -68,26 +68,31 @@ function Invoke-Process {
     Write-Verbose 'Invoke-Process: Starting Process'
     $process.Start() | Out-Null
 
+    # Read output streams asynchronously to prevent deadlocks
+    Write-Verbose 'Invoke-Process: Reading Output Streams'
+    $outputJob = $process.StandardOutput.ReadToEndAsync()
+    $errorJob = $process.StandardError.ReadToEndAsync()
+
     # Wait for the process to exit
     Write-Verbose 'Invoke-Process: Waiting for Process to Exit'
     $process.WaitForExit()
     Write-Verbose "Invoke-Process: Process Exited (ExitCode: $($process.ExitCode))"
 
-    # Read output streams before closing the process
-    $standardOutput = $process.StandardOutput.ReadToEnd()
-    $standardError = $process.StandardError.ReadToEnd()
+    # Get the output from the async operations
+    $standardOutput = $outputJob.Result
+    $standardError = $errorJob.Result
 
     # Check for errors
-    if ($process.ExitCode -ne 0) {
-        Write-Warning "Process Failed`n`tExecutable: $Name`n`tArguments: $Arguments`n`tExit Code: $($process.ExitCode)`n`tError: $standardError"
+    if ($process.ExitCode) {
+        Write-Warning "Invoke-Process: Process Failed`n`tExecutable: $Name`n`tArguments: $Arguments`n`tExit Code: $($process.ExitCode)`n`tError: $standardError"
     }
 
     # Close the process to free up resources
     $process.Close()
     
     return [PSCustomObject]@{
-        Output   = $standardOutput
-        Error    = $standardError
-        ExitCode = $process.ExitCode
+        Output   = $standardOutput ?? [string]::Empty
+        Error    = $standardError ?? [string]::Empty
+        ExitCode = $process.ExitCode ?? 0
     }
 }

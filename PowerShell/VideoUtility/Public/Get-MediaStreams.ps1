@@ -75,10 +75,14 @@ function Get-MediaStreams {
         try {
             # Get all streams from the file using ffprobe
             Write-Verbose 'Running ffprobe to get stream information'
-            $ffprobeResult = Invoke-FFProbe '-show_streams', $resolvedPath
-        
+            $processResult = Invoke-FFProbe '-show_streams', $resolvedPath
+            if ($processResult.ExitCode) {
+                Write-Error "Get-MediaStreams: Failed to get media streams. Exit code: $($processResult.ExitCode)"
+                return @()
+            }
+
             # Get streams from the result object
-            $allStreams = $ffprobeResult.streams
+            $allStreams = $processResult.Json.streams
 
             # Return empty array if no streams found
             if (-not $allStreams) {
