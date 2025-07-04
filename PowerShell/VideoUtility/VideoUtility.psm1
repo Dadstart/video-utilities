@@ -48,6 +48,7 @@ Export-ModuleMember -Function @(
     'Add-PlexFolder',
     'Invoke-FFMpeg',
     'Invoke-FFProbe',
+    'Invoke-Process',
     'Invoke-PlexFileOperation',
     'Move-PlexFile',
     'Remove-PlexEmptyFolder'
