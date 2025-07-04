@@ -46,6 +46,8 @@ Export-ModuleMember -Function @(
     'Get-MkvTrackAll',
     'Get-MkvTracks',
     'Add-PlexFolder',
+    'Invoke-FFMpeg',
+    'Invoke-FFProbe',
     'Invoke-PlexFileOperation',
     'Move-PlexFile',
     'Remove-PlexEmptyFolder'
