@@ -31,7 +31,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $uninstallScript = Join-Path $scriptDir 'Uninstall.ps1'
 if (Test-Path $uninstallScript) {
     Write-Verbose 'Running uninstall script to clean up existing installation'
-    & $uninstallScript -Force:$Force -Verbose:$PSBoundParameters['Verbose'].IsPresent
+    & $uninstallScript -Force:$Force
 } else {
     Write-Error "Uninstall script not found: $uninstallScript"
     throw 'Uninstall script not found'
@@ -41,7 +41,7 @@ if (Test-Path $uninstallScript) {
 $installScript = Join-Path $scriptDir 'Install.ps1'
 if (Test-Path $installScript) {
     Write-Verbose 'Running install script'
-    & $installScript -Force:$Force -Verbose:$PSBoundParameters['Verbose'].IsPresent
+    & $installScript -Force:$Force
 }
 else {
     Write-Error "Install script not found: $installScript"
