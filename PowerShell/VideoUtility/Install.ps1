@@ -42,7 +42,7 @@ if (-not (Test-Path $manifestPath)) {
 }
 
 # Check if module is already loaded
-$isAlreadyLoaded = Get-Module -Name VideoUtility -ErrorAction SilentlyContinue -Verbose:$PSBoundParameters['Verbose'].IsPresent
+$isAlreadyLoaded = Get-Module -Name VideoUtility
 
 if ($isAlreadyLoaded -and -not $Force) {
     Write-Verbose "VideoUtility module is already loaded"
@@ -58,7 +58,7 @@ try {
     # Import the module
     Write-Verbose 'Importing VideoUtility module'
     $modulePath = Join-Path $moduleRoot 'VideoUtility'
-    Import-Module $modulePath -Force:$Force -ErrorAction Stop -Verbose:$PSBoundParameters['Verbose'].IsPresent
+    Import-Module $modulePath -Force:$Force
     Write-Host 'VideoUtility module installed successfully!' -ForegroundColor Green
     Write-Verbose "Module location: $moduleRoot"
 }
