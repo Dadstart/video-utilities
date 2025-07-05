@@ -81,8 +81,8 @@ function Get-MediaStreams {
                 return @()
             }
 
-            # Get streams from the result object
-            $allStreams = $processResult.Json.streams
+            $streams = $processResult.Json.streams
+            $allStreams = $streams
 
             # Return empty array if no streams found
             if (-not $allStreams) {
@@ -99,7 +99,6 @@ function Get-MediaStreams {
             foreach ($stream in $allStreams) {
                 # Check if stream matches the requested type
                 $matchesType = ($Type -eq [StreamType]::All) -or ($stream.codec_type -eq $streamTypeString)
-            
                 if ($matchesType) {
                     Write-Verbose "Processing stream $($stream.index) of type $($stream.codec_type)"                
 

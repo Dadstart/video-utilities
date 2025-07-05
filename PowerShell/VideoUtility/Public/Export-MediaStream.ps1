@@ -99,13 +99,7 @@ function Export-MediaStream {
         Write-Verbose "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
 
         # Resolve and validate input path
-        try {
-            $InputPath = Resolve-Path $InputPath -ErrorAction Stop
-            Write-Verbose "Input path resolved: $InputPath"
-        }
-        catch {
-            Write-Error "Input file not found: $InputPath" -ErrorAction Stop
-        }
+        $InputPath = Resolve-Path $InputPath
 
         # Resolve output path relative to current working directory
         if ([System.IO.Path]::IsPathRooted($OutputPath)) {
@@ -119,7 +113,7 @@ function Export-MediaStream {
         }
         Write-Verbose "Output path resolved: $OutputPath"
 
-        # Create output directory if it doesn't exist
+        # Create output directory if it doesn't exist        
         $outputDir = Split-Path $OutputPath -Parent
         if ($outputDir -and -not (Test-Path $outputDir)) {
             Write-Verbose "Creating output directory: $outputDir"
@@ -158,11 +152,11 @@ function Export-MediaStream {
         }
 
         $ffmpegArgs = @(
-            '-i', $InputPath,
+            '-i', "'$InputPath'",
             '-y', # Overwrite output files
             '-map', $mapValue,
             '-c', 'copy',
-            $OutputPath
+            "'$OutputPath'"
         )
         Write-Verbose "FFmpeg command: ffmpeg $($ffmpegArgs -join ' ')"
 
