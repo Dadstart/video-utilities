@@ -69,7 +69,8 @@ function Get-MediaStream {
         $codecFilter = "$t`:"
     }
 
-    $processResult = Invoke-FFProbe '-select_streams', "$codecFilter$Index", '-show_streams', $Name
+    $quotedName = '"' + $Name + '"'
+    $processResult = Invoke-FFProbe '-select_streams', "$codecFilter$Index", '-show_streams', $quotedName
     if ($processResult.ExitCode) {
         Write-Error "Get-MediaStream: Failed to get media stream. Exit code: $($processResult.ExitCode)"
         return $null
