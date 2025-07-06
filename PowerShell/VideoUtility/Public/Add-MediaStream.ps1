@@ -117,12 +117,13 @@ function Add-MediaStream {
     # Add main video file as input #0
     # -i specifies an input file
     $inputs.Add('-i')
-    $inputs.Add($InputPath)
+    $quotedInputPath = '"' + (Resolve-Path $InputPath).Path + '"'
+    $inputs.Add($quotedInputPath)
     
     # Map the video stream from input #0
     # -map 0:v maps the video stream from the first input file (index 0)
     $maps.Add('-map')
-    $maps.Add('0:v')
+    $maps.Add('0:v:0')
 
     for ($i = 0; $i -lt $Streams.Count; $i++) {
         $stream = $Streams[$i]
@@ -132,7 +133,8 @@ function Add-MediaStream {
         # Add additional stream file as input #(i+1)
         # Each additional file becomes input #1, #2, #3, etc.
         $inputs.Add('-i')
-        $inputs.Add($stream.File)
+        $quotedStreamFile = '"' + (Resolve-Path $stream.File).Path + '"'
+        $inputs.Add($quotedStreamFile)
 
         # Convert stream type to FFmpeg short form
         # FFmpeg uses single letters: 'a' for audio, 'v' for video, 's' for subtitle
@@ -148,7 +150,7 @@ function Add-MediaStream {
         # -map 2:a:0 maps the second audio stream from the third input file
         # etc.
         $maps.Add('-map')
-        $maps.Add("$($i + 1):$ffmpegType:0")
+        $maps.Add("$($i + 1):$ffmpegType`:0")
 
         # Add metadata for this stream
         # -metadata:s:a:0 key=value sets metadata for the first audio stream in the output
@@ -156,17 +158,19 @@ function Add-MediaStream {
         $metadata.Add("-metadata:s:$ffmpegType`:$i")
         $metadata.Add("language=$($stream.Language)")
         $metadata.Add("-metadata:s:$ffmpegType`:$i") 
-#        $metadata.Add("title=`"$($stream.Title)`"")
-        $metadata.Add("title=$($stream.Title)")
+        $metadata.Add("title=foo")
+#        $metadata.Add("title=$($stream.Title)")
     }
 
     # Assemble the final ffmpeg command
     $args = [System.Collections.Generic.List[string]]::new()
     
     # Add all input files (-i arguments)
+    Write-Verbose "Inputs: $($inputs -join ' ')"
     $args.AddRange($inputs)
     
     # Add all stream mappings (-map arguments)
+    Write-Verbose "Maps: $($maps -join ' ')"
     $args.AddRange($maps)
     
     # Copy all streams without re-encoding to preserve quality
@@ -178,12 +182,16 @@ function Add-MediaStream {
     $args.Add('-y')
     
     # Add all metadata tags
+    Write-Verbose "Metadata: $($metadata -join ' ')"
     $args.AddRange($metadata)
     
     # Add the output file path
-    $args.Add($OutputPath)
+    $quotedOutputPath = '"' + (Resolve-Path $OutputPath).Path + '"'
+    Write-Verbose "OutputPath: $quotedOutputPath"
+    $args.Add($quotedOutputPath)
 
+    $global:argsCollection = $args # TEMP HACK
     $argsArray = $args.ToArray()
     Write-Verbose "FFmpeg command: ffmpeg $($argsArray -join ' ')"
-    Invoke-FFMpeg $argsArray
+    Invoke-FFMpeg -Arguments $argsArray
 }
