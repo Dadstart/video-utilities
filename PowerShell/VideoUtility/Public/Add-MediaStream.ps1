@@ -117,7 +117,7 @@ function Add-MediaStream {
     # Add main video file as input #0
     # -i specifies an input file
     $inputs.Add('-i')
-    $quotedInputPath = '"' + (Resolve-Path $InputPath).Path + '"'
+    $quotedInputPath = '"' + $InputPath + '"'
     $inputs.Add($quotedInputPath)
     
     # Map the video stream from input #0
@@ -133,7 +133,7 @@ function Add-MediaStream {
         # Add additional stream file as input #(i+1)
         # Each additional file becomes input #1, #2, #3, etc.
         $inputs.Add('-i')
-        $quotedStreamFile = '"' + (Resolve-Path $stream.File).Path + '"'
+        $quotedStreamFile = '"' + $stream.File + '"'
         $inputs.Add($quotedStreamFile)
 
         # Convert stream type to FFmpeg short form
@@ -186,12 +186,11 @@ function Add-MediaStream {
     $args.AddRange($metadata)
     
     # Add the output file path
-    $quotedOutputPath = '"' + (Resolve-Path $OutputPath).Path + '"'
+    $quotedOutputPath = '"' + $OutputPath + '"'
     Write-Verbose "OutputPath: $quotedOutputPath"
     $args.Add($quotedOutputPath)
 
-    $global:argsCollection = $args # TEMP HACK
     $argsArray = $args.ToArray()
     Write-Verbose "FFmpeg command: ffmpeg $($argsArray -join ' ')"
-    Invoke-FFMpeg -Arguments $argsArray
+    Invoke-FFMpeg -Arguments $argsArray | Out-Null
 }
