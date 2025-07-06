@@ -125,7 +125,8 @@ function Export-MediaStream {
         # Check if output file exists and handle Force parameter
         if (Test-Path $OutputPath) {
             if (-not $Force) {
-                Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite." -ErrorAction Stop
+                Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite."
+                return
             }
             else {
                 Write-Verbose "Overwriting existing file: $OutputPath"
@@ -151,13 +152,16 @@ function Export-MediaStream {
             $mapValue = "0:$($streamFilter):$Index"
         }
 
+        $quotedInputPath = '"' + $InputPath + '"'
+        $quotedOutputPath = '"' + $OutputPath + '"'
         $ffmpegArgs = @(
-            '-i', "'$InputPath'",
+            '-i', $quotedInputPath,
             '-y', # Overwrite output files
             '-map', $mapValue,
             '-c', 'copy',
-            "'$OutputPath'"
+            $quotedOutputPath
         )
+
         Write-Verbose "FFmpeg command: ffmpeg $($ffmpegArgs -join ' ')"
 
         $operation = "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"

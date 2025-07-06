@@ -43,54 +43,60 @@ function Invoke-Process {
         [string[]]$Arguments = @()
     )
 
-    # Setup process start information
-    # $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi = New-Object System.Diagnostics.ProcessStartInfo -Property @{
-        FileName               = $Name
-        CreateNoWindow         = $true
-        UseShellExecute        = $false
-        RedirectStandardOutput = $true
-        RedirectStandardError  = $true
-        WorkingDirectory       = (Get-Location).Path
+    Write-Verbose "Invoke-Process: STARTING - Name: $Name"
+    Write-Verbose "Invoke-Process: Arguments: $($Arguments -join ' ')"
+ 
+    try {
+        # Set up process start info
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = $Name
+        $psi.Arguments = $Arguments -join ' '
+        $psi.RedirectStandardOutput = $true
+        $psi.RedirectStandardError = $true
+        $psi.UseShellExecute = $false
+        $psi.CreateNoWindow = $true
+        
+        # Create process object
+        $proc = [System.Diagnostics.Process]::new()
+        $proc.StartInfo = $psi
+
+        # Start the process
+        $proc = [System.Diagnostics.Process]::Start($psi)
+
+        # Read both streams (these block until the process exits or streams close)
+        $stdout = $proc.StandardOutput.ReadToEnd()
+        $stderr = $proc.StandardError.ReadToEnd()
+
+        Write-Verbose 'Invoke-Process: process.WaitForExit()'
+        $proc.WaitForExit()
+        Write-Verbose "Invoke-Process: Process exited with code $($proc.ExitCode)"
+
+        # Check for errors
+        $exitCode = $proc.ExitCode
+        if ($exitCode -ne 0) {
+            Write-Warning "Invoke-Process: Process Failed`n`tExecutable: $Name`n`tArguments: $($psi.Arguments)`n`tExit Code: $exitCode`n`tError: $stderr"
+        }
+
+        # Close the process to free up resources
+        Write-Verbose 'Invoke-Process: Closing Process'
+        $proc.Close()
+        Write-Verbose 'Invoke-Process: Process Closed'
+
+        $result = [PSCustomObject]@{
+            Output   = $stdout
+            Error    = $stderr
+            ExitCode = $exitCode
+        }
+
+        return $result
     }
-
-    $psi.Arguments = $Arguments -join ' '
-
-    Write-Verbose "Invoke-Process: Process Info: FileName: $($psi.FileName) Arguments: $($psi.ArgumentList)"
-
-    # Create process object
-    $process = New-Object -TypeName System.Diagnostics.Process
-    $process.StartInfo = $psi
-
-    # Start the process
-    Write-Verbose 'Invoke-Process: Starting Process'
-    $process.Start() | Out-Null
-
-    # Read output streams asynchronously to prevent deadlocks
-    Write-Verbose 'Invoke-Process: Reading Output Streams'
-    $outputJob = $process.StandardOutput.ReadToEndAsync()
-    $errorJob = $process.StandardError.ReadToEndAsync()
-
-    # Wait for the process to exit
-    Write-Verbose 'Invoke-Process: Waiting for Process to Exit'
-    $process.WaitForExit()
-    Write-Verbose "Invoke-Process: Process Exited (ExitCode: $($process.ExitCode))"
-
-    # Get the output from the async operations
-    $standardOutput = $outputJob.Result
-    $standardError = $errorJob.Result
-
-    # Check for errors
-    if ($process.ExitCode) {
-        Write-Warning "Invoke-Process: Process Failed`n`tExecutable: $Name`n`tArguments: $Arguments`n`tExit Code: $($process.ExitCode)`n`tError: $standardError"
-    }
-
-    # Close the process to free up resources
-    $process.Close()
-    
-    return [PSCustomObject]@{
-        Output   = $standardOutput ?? [string]::Empty
-        Error    = $standardError ?? [string]::Empty
-        ExitCode = $process.ExitCode ?? 0
+    catch {
+        Write-Verbose 'Invoke-Process: Exception'
+        Write-Verbose "Invoke-Process: Error: $($_)"
+        Write-Verbose "Invoke-Process: Message: $($_.Exception.Message)"
+        Write-Verbose "Invoke-Process: FullyQualifiedErrorId: $($_.FullyQualifiedErrorId)"
+        Write-Verbose "Invoke-Process: ScriptStackTrace: $($_.ScriptStackTrace)"
+        Write-Verbose "Invoke-Process: CategoryInfo: $($_.CategoryInfo)"
+        throw $_
     }
 }

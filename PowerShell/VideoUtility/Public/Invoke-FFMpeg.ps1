@@ -41,16 +41,22 @@ function Invoke-FFMpeg {
         # Pass through verbose/debug preferences to called functions
         $PSDefaultParameterValues['Invoke-Process:Verbose'] = $VerbosePreference
         $PSDefaultParameterValues['Invoke-Process:Debug'] = $DebugPreference
-    }
-    process {
+   }
+    process {        
         # Check if ffmpeg is installed
         Test-FFMpegInstalled -Throw | Out-Null
 
         $finalArguments = @('-v', 'error', '-hide_banner') + $Arguments
-
         Write-Verbose "Invoke-FFMpeg: Arguments: $($finalArguments -join ' ')"
-        $result = Invoke-Process ffmpeg $finalArguments
+        $processResult = Invoke-Process ffmpeg $finalArguments
 
-        return $result
+        Write-Debug "Invoke-FFMpeg: Process exit code: $($processResult.ExitCode)"
+        Write-Debug "Invoke-FFMpeg: Output length: $($processResult.Output.Length)"
+        Write-Debug "Invoke-FFMpeg: Error length: $($processResult.Error.Length)"
+        if ($processResult.ExitCode -ne 0) {
+            Write-Error "Invoke-FFMpeg: Failed to execute ffmpeg. Exit code: $($processResult.ExitCode)"
+        }
+
+        return $processResult
     }
 }

@@ -57,13 +57,16 @@ function Invoke-FFProbe {
         $PSDefaultParameterValues['Invoke-Process:Debug'] = $DebugPreference
     }
     process {
-        # Check if ffmpeg is installed
+        # Check if ffprobe is installed
         Test-FFMpegInstalled -Throw | Out-Null
 
         $finalArguments = @('-v', 'error', '-of', 'json') + $Arguments
         Write-Verbose "Invoke-FFProbe: Arguments: $($finalArguments -join ' ')"
         $processResult = Invoke-Process ffprobe $finalArguments
-        Write-Debug "Invoke-FFProbe: Process Result: $($processResult)"
+
+        Write-Debug "Invoke-FFProbe: Process exit code: $($processResult.ExitCode)"
+        Write-Debug "Invoke-FFProbe: Output length: $($processResult.Output.Length)"
+        Write-Debug "Invoke-FFProbe: Error length: $($processResult.Error.Length)"
         if ($processResult.ExitCode -ne 0) {
             Write-Error "Invoke-FFProbe: Failed to execute ffprobe. Exit code: $($processResult.ExitCode)"
             $result = [PSCustomObject]@{
