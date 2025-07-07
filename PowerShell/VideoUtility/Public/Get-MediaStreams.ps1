@@ -38,7 +38,17 @@ function Get-MediaStreams {
         # Retrieves all streams from 'example.mp4'.
 
     .OUTPUTS
-        [object[]] Array of stream objects with Index, CodecType, CodecName, Language, Disposition, and Tags properties.
+        object[] Array of stream objects like below:
+            [PSCustomObject]@{
+                Index       = [int]$stream.index
+                CodecType   = [string]$stream.codec_type
+                CodecName   = [string]$stream.codec_name
+                TypeIndex   = [int]$typeIndex
+                Language    = [string]$stream.tags.language
+                Title       = [string]$stream.tags.title    
+                Disposition = $stream.disposition
+                Tags        = $stream.tags
+            }
 
     .NOTES
         Requires ffmpeg/ffprobe to be installed and available in the system PATH.
