@@ -127,9 +127,7 @@ function Add-MediaStream {
 
     for ($i = 0; $i -lt $Streams.Count; $i++) {
         $stream = $Streams[$i]
-        Write-Host "Adding $($stream.Type) stream #$i to $OutputPath. Title: $($stream.Title) Language: $($stream.Language)"
         Write-Verbose "Adding $($stream.Type) stream #$i to $OutputPath. Title: $($stream.Title) Language: $($stream.Language)"
-        $stream | fl *
 
         # Add additional stream file as input #(i+1)
         # Each additional file becomes input #1, #2, #3, etc.
@@ -159,8 +157,7 @@ function Add-MediaStream {
         $metadata.Add("-metadata:s:$ffmpegType`:$i")
         $metadata.Add("language=$($stream.Language)")
         $metadata.Add("-metadata:s:$ffmpegType`:$i") 
-        $metadata.Add("title=foo")
-#        $metadata.Add("title=$($stream.Title)")
+        $metadata.Add("title=$($stream.Title)")
     }
 
     # Assemble the final ffmpeg command
