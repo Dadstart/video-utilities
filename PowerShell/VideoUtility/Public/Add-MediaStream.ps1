@@ -81,13 +81,13 @@ function Add-MediaStream {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, ValueFromPipeline)]
-        [ValidateScript({
-                $_.File -and $_.Language -and $_.Title -and $_.Type
-            })]
+        [ValidateNotNullOrEmpty()]
         [PSCustomObject[]]$Streams,
         [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
         [string]$InputPath,
         [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
         [string]$OutputPath
     )
 
@@ -127,6 +127,7 @@ function Add-MediaStream {
 
     for ($i = 0; $i -lt $Streams.Count; $i++) {
         $stream = $Streams[$i]
+        Write-Host "Adding $($stream.Type) stream #$i to $OutputPath. Title: $($stream.Title) Language: $($stream.Language)"
         Write-Verbose "Adding $($stream.Type) stream #$i to $OutputPath. Title: $($stream.Title) Language: $($stream.Language)"
         $stream | fl *
 
