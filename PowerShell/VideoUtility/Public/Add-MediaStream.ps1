@@ -157,7 +157,7 @@ function Add-MediaStream {
         $metadata.Add("-metadata:s:$ffmpegType`:$i")
         $metadata.Add("language=$($stream.Language)")
         $metadata.Add("-metadata:s:$ffmpegType`:$i") 
-        $metadata.Add("title=$($stream.Title)")
+        $metadata.Add("title=`"$($stream.Title)`"")
     }
 
     # Assemble the final ffmpeg command
