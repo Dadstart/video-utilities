@@ -12,7 +12,7 @@
     RootModule = 'VideoUtility.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.2.0'
+    ModuleVersion = '0.2.1'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -24,7 +24,7 @@
     Author = 'Dadstart'
 
     # Company or vendor of this module
-    CompanyName = ''
+    CompanyName = 'Dadstart'
 
     # Copyright statement for this module
     Copyright = 'Copyright © Dadstart'
