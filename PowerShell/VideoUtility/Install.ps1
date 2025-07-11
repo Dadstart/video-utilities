@@ -37,19 +37,18 @@ $moduleRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $manifestPath = Join-Path $moduleRoot 'VideoUtility.psd1'
 if (-not (Test-Path $manifestPath)) {
     Write-Error "Module manifest not found at: $manifestPath"
-    Write-Error "Please run this script from the VideoUtility module directory."
-    throw 'Invalid module directory'
+    throw "Invalid module directory $manifestPath"
 }
 
 # Check if module is already loaded
 $isAlreadyLoaded = Get-Module -Name VideoUtility
 
 if ($isAlreadyLoaded -and -not $Force) {
-    Write-Verbose "VideoUtility module is already loaded"
+    Write-Verbose 'VideoUtility module is already loaded'
     Write-Verbose 'Use -Force parameter to reload the module'
     
     Write-Host 'VideoUtility module is already available!' -ForegroundColor Green
-    Write-Host "Module location: $moduleRoot" -ForegroundColor Cyan
+    Write-Verbose "Module location: $moduleRoot"
     
     return
 }

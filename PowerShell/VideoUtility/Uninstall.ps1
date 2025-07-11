@@ -25,8 +25,8 @@ param(
 if (Get-Module -Name VideoUtility -ErrorAction SilentlyContinue) {
     Write-Verbose 'Removing loaded VideoUtility module'
     Remove-Module -Name VideoUtility -Force:$Force -ErrorAction SilentlyContinue
-    Write-Verbose 'VideoUtility module uninstalled successfully!'
+    Write-Host 'VideoUtility module uninstalled successfully!' -ForegroundColor Green
 }
 else {
-    Write-Warning "VideoUtility module is not currently loaded"
+    Write-Warning 'VideoUtility module is not currently loaded'
 } 

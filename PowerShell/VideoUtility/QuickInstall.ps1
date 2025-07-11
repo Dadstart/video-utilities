@@ -32,7 +32,8 @@ $uninstallScript = Join-Path $scriptDir 'Uninstall.ps1'
 if (Test-Path $uninstallScript) {
     Write-Verbose 'Running uninstall script to clean up existing installation'
     & $uninstallScript -Force:$Force
-} else {
+}
+else {
     Write-Error "Uninstall script not found: $uninstallScript"
     throw 'Uninstall script not found'
 }
