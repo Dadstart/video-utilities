@@ -50,26 +50,41 @@ function Invoke-Process {
         # Set up process start info
         $psi = New-Object System.Diagnostics.ProcessStartInfo
         $psi.FileName = $Name
-        $psi.Arguments = $Arguments -join ' '
+        
+        # Properly quote arguments to handle paths with spaces
+        $quotedArguments = $Arguments | ForEach-Object {
+            if ($_ -match '\s' -and $_ -notmatch '^".*"$') {
+                # Quote arguments that contain spaces and aren't already quoted
+                "`"$_`""
+            } else {
+                $_
+            }
+        }
+        $psi.Arguments = $quotedArguments -join ' '
+        
         $psi.RedirectStandardOutput = $true
         $psi.RedirectStandardError = $true
         $psi.UseShellExecute = $false
         $psi.CreateNoWindow = $true
         
-        # Create process object
+        # Create and start the process
         $proc = [System.Diagnostics.Process]::new()
         $proc.StartInfo = $psi
+        $proc.Start()
 
-        # Start the process
-        $proc = [System.Diagnostics.Process]::Start($psi)
-
-        # Read both streams (these block until the process exits or streams close)
-        $stdout = $proc.StandardOutput.ReadToEnd()
-        $stderr = $proc.StandardError.ReadToEnd()
-
+        # Read both streams asynchronously to prevent deadlocks
+        $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
+        $stderrTask = $proc.StandardError.ReadToEndAsync()
+        
         Write-Verbose 'Invoke-Process: process.WaitForExit()'
         $proc.WaitForExit()
+        
+        # Get the results from the async tasks
+        $stdout = $stdoutTask.Result
+        $stderr = $stderrTask.Result
         Write-Verbose "Invoke-Process: Process exited with code $($proc.ExitCode)"
+        Write-Debug "Invoke-Process: stdout length: $($stdout.Length)"
+        Write-Debug "Invoke-Process: stderr length: $($stderr.Length)"
 
         # Check for errors
         $exitCode = $proc.ExitCode
@@ -77,10 +92,10 @@ function Invoke-Process {
             Write-Warning "Invoke-Process: Process Failed`n`tExecutable: $Name`n`tArguments: $($psi.Arguments)`n`tExit Code: $exitCode`n`tError: $stderr"
         }
 
-        # Close the process to free up resources
-        Write-Verbose 'Invoke-Process: Closing Process'
-        $proc.Close()
-        Write-Verbose 'Invoke-Process: Process Closed'
+        # Dispose the process to free up resources
+        Write-Verbose 'Invoke-Process: Disposing Process'
+        $proc.Dispose()
+        Write-Verbose 'Invoke-Process: Process Disposed'
 
         $result = [PSCustomObject]@{
             Output   = $stdout
