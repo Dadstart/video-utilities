@@ -7,7 +7,9 @@ function Export-MediaStreams {
         [string]$OutputDirectory,
         [Parameter(Mandatory)]
         [ValidateSet('Audio','Subtitle','Video')]
-        [string]$Type
+        [string]$Type,
+        [Parameter()]
+        [switch]$Force
     )
 
     process {
@@ -16,10 +18,11 @@ function Export-MediaStreams {
         Get-MediaStreams -Path $inputPath.Path -Type $Type | ForEach-Object {
             $extension = ".$($_.Index - 1).$($_.CodecName)"
             Write-Verbose "Extension: $extension"
-            $outputPath = (Resolve-Path $OutputDirectory).Path, '\', [System.IO.Path]::GetFileNameWithoutExtension($inputFile), $extension -join ''
+            $outputPath = (Resolve-Path $OutputDirectory).Path
+            $outputPath =  ([System.IO.Path]::Combine($outputPath, '\', [System.IO.Path]::GetFileNameWithoutExtension($inputFile), $extension -join ''))
             Write-Verbose "OutputPath: $outputPath"
 
-            if (Test-Path $outputPath) {
+            if (Test-Path $outputPath -and -not $Force) {
                 Write-Host "$Type stream already exists: $outputPath"
                 continue
             }
