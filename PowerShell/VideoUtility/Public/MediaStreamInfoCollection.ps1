@@ -166,6 +166,53 @@ class MediaStreamInfoCollection {
         return $allStreamsOfLanguage
     }
 
+    # Method: ExportFile
+    [void]ExportFile([string]$File, [string]$OutputDirectory, [string]$Language, [string]$Type, [switch]$Force) {
+        if (-not (Test-Path $OutputDirectory)) {
+            if ($Force) {
+                New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
+            }
+            else {
+                Write-Error "Output directory $OutputDirectory does not exist. Use -Force to create it."
+            }
+        }
+
+        if (-not $this.Dictionary.ContainsKey($File)) {
+            Write-Error "File $File not found in collection"
+        }
+
+        $streams = $this.Dictionary[$File]
+        $fileName = [System.IO.Path]::GetFileNameWithoutExtension($File)
+        $outputFiles = @()
+        $fileFFMpegArgs = @()
+
+        foreach ($stream in $streams) {
+            if ($Language -and $stream.Language -ne $Language) {
+                continue
+            }
+            if ($Type -and $stream.CodecType -ne $Type) {
+                continue
+            }
+
+            # Use Get-MediaExtension for proper extension mapping
+            $extension = Get-MediaExtension -CodecType $stream.CodecType -CodecName $stream.CodecName
+            $streamKey = "$($stream.CodecType)_$($stream.TypeIndex)"
+            if ($stream.Language) {
+                $streamKey += "_$($stream.Language)"
+            }
+            $outputFile = Join-Path $OutputDirectory "$fileName`_$streamKey.$extension"
+            $fileFFMpegArgs += $stream.GetFFMpegOutputArgs($outputFile)
+        }
+
+        $quotedInputPath = '"' + $filePath + '"'
+        $fileFFMpegArgs += @('-i', $quotedInputPath, '-y')
+        $result = Invoke-FFMpeg -Arguments $fileFFMpegArgs
+
+        if ($result.ExitCode -ne 0) {
+            Write-Error "Failed to export streams for file '$filePath'"
+        }
+    }
+
     # Method: ExportAllStreams
     [void]ExportAllStreams([string]$OutputDirectory, [string]$Language, [string]$Type, [switch]$Force) {
         if (-not (Test-Path $OutputDirectory)) {
@@ -173,34 +220,38 @@ class MediaStreamInfoCollection {
         }
 
         foreach ($filePath in $this.Dictionary.Keys) {
-            $streamArray = $this.Dictionary[$filePath]
-            $fileName = [System.IO.Path]::GetFileNameWithoutExtension($filePath)
-            
-            foreach ($stream in $streamArray) {
-                if ($Language -and $stream.Language -ne $Language) {
-                    continue
-                }
-                if ($Type -and $stream.CodecType -ne $Type) {
-                    continue
-                }
-
-                # TODO: Add extension based on codec name
-                $extension = switch ($stream.CodecType) {
-                    'audio' { '.aac' }
-                    'video' { '.mp4' }
-                    'subtitle' { '.srt' }
-                    'data' { '.bin' }
-                    default { '.stream' }
-                }
-                $streamKey = "$($stream.CodecType)_$($stream.TypeIndex)"
-                if ($stream.Language) {
-                    $streamKey += "_$($stream.Language)"
-                }
-                # TODO: Export multiple streams at the same time
-                $outputPath = Join-Path $OutputDirectory "$fileName`_$streamKey$extension"
-                $stream.Export($outputPath, $Force)
-            }
+            $this.ExportFile($filePath, $OutputDirectory, $Language, $Type, $Force)
         }
+    }
+
+    # Method: GetFFMpegArgsForStreams - returns ffmpeg arguments for multiple streams from same file
+    [string[]]GetFFMpegArgsForStreams([string]$FilePath, [string[]]$OutputPaths, [int[]]$StreamIndices) {
+        if (-not $this.ContainsKey($FilePath)) {
+            Write-Error "File '$FilePath' not found in collection" -ErrorAction Stop
+        }
+
+        $streamArray = $this.Dictionary[$FilePath]
+        if ($streamArray.Count -eq 0) {
+            Write-Error "No streams found for file '$FilePath'" -ErrorAction Stop
+        }
+
+        # Build combined ffmpeg arguments for multiple streams
+        $quotedInputPath = '"' + $FilePath + '"'
+        $ffmpegArgs = @('-i', $quotedInputPath, '-y')
+        
+        for ($i = 0; $i -lt $StreamIndices.Count; $i++) {
+            $streamIndex = $StreamIndices[$i]
+            $outputPath = $OutputPaths[$i]
+            
+            if ($streamIndex -ge $streamArray.Count) {
+                Write-Error "Stream index $streamIndex out of range for file '$FilePath'" -ErrorAction Stop
+            }
+            
+            $stream = $streamArray[$streamIndex]
+            $ffmpegArgs += $stream.GetFFMpegOutputArgs($outputPath) 
+        }
+        
+        return $ffmpegArgs
     }
 
     # Override ToString method for better debugging
