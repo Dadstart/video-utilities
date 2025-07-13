@@ -28,28 +28,18 @@ if (Test-Path $privatePath) {
 
 # Load classes first in the correct order (base class before derived class)
 $publicPath = Join-Path $scriptPath 'Public'
+$classes = @('ProcessResult.ps1', 'FFProbeResult.ps1', 'MediaStreamInfo.ps1', 'MediaStreamInfoCollection.ps1')
 if (Test-Path $publicPath) {
-    # Load ProcessResult class first
-    $processResultPath = Join-Path $publicPath 'ProcessResult.ps1'
-    if (Test-Path $processResultPath) {
-        . $processResultPath
+    foreach ($class in $classes) {
+        $classPath = Join-Path $publicPath $class
+        if (Test-Path $classPath) {
+            . $classPath
+        }
     }
-    
-    # Load FFProbeResult class second
-    $ffProbeResultPath = Join-Path $publicPath 'FFProbeResult.ps1'
-    if (Test-Path $ffProbeResultPath) {
-        . $ffProbeResultPath
-    }
-    
-    # Load MediaStreamInfo class third
-    $mediaStreamInfoPath = Join-Path $publicPath 'MediaStreamInfo.ps1'
-    if (Test-Path $mediaStreamInfoPath) {
-        . $mediaStreamInfoPath
-    }
-    
+
     # Load all other public functions (excluding the class files)
     Get-ChildItem -Path $publicPath -Filter '*.ps1' | Where-Object { 
-        $_.Name -notin @('ProcessResult.ps1', 'FFProbeResult.ps1', 'MediaStreamInfo.ps1') 
+        $_.Name -notin $classes
     } | ForEach-Object {
         . $_.FullName
     }
@@ -60,9 +50,12 @@ Export-ModuleMember -Function @(
     'Add-MediaStream',
     'Export-MediaStream',
     'Export-MediaStreams',
+    'Export-MediaStreamCollection',
     'Get-FFMpegVersion',
     'Get-MediaStream',
     'Get-MediaStreams',
+    'Get-MediaStreamCollection',
+    'ConvertTo-MediaStreamCollection',
     'Get-MkvTrack',
     'Get-MkvTrackAll',
     'Get-MkvTracks',
