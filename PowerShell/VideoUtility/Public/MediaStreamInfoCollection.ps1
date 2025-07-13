@@ -204,12 +204,12 @@ class MediaStreamInfoCollection {
             $fileFFMpegArgs += $stream.GetFFMpegOutputArgs($outputFile)
         }
 
-        $quotedInputPath = '"' + $filePath + '"'
+        $quotedInputPath = '"' + $File + '"'
         $fileFFMpegArgs += @('-i', $quotedInputPath, '-y')
         $result = Invoke-FFMpeg -Arguments $fileFFMpegArgs
 
         if ($result.ExitCode -ne 0) {
-            Write-Error "Failed to export streams for file '$filePath'"
+            Write-Error "Failed to export streams for file '$File'"
         }
     }
 
