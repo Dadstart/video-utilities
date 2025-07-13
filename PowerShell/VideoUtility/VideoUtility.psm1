@@ -41,9 +41,15 @@ if (Test-Path $publicPath) {
         . $ffProbeResultPath
     }
     
+    # Load MediaStreamInfo class third
+    $mediaStreamInfoPath = Join-Path $publicPath 'MediaStreamInfo.ps1'
+    if (Test-Path $mediaStreamInfoPath) {
+        . $mediaStreamInfoPath
+    }
+    
     # Load all other public functions (excluding the class files)
     Get-ChildItem -Path $publicPath -Filter '*.ps1' | Where-Object { 
-        $_.Name -notin @('ProcessResult.ps1', 'FFProbeResult.ps1') 
+        $_.Name -notin @('ProcessResult.ps1', 'FFProbeResult.ps1', 'MediaStreamInfo.ps1') 
     } | ForEach-Object {
         . $_.FullName
     }

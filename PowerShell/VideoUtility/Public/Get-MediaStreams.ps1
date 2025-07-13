@@ -8,11 +8,11 @@ enum StreamType {
 function Get-MediaStreams {
     <#
     .SYNOPSIS
-        Retrieves an array of streams from a media file.
+        Retrieves an array of MediaStreamInfo objects from a media file.
 
     .DESCRIPTION
-        Scans a media file using ffprobe and returns filtered streams.
-        Each stream object contains Index, CodecType, CodecName, Language, Disposition, and Tags properties.
+        Scans a media file using ffprobe and returns filtered MediaStreamInfo objects.
+        Each MediaStreamInfo object contains Index, CodecType, CodecName, Language, Disposition, and Tags properties.
 
     .PARAMETER Path
         Path to the media file.
@@ -23,39 +23,45 @@ function Get-MediaStreams {
 
     .EXAMPLE
         Get-MediaStreams 'example.mp4' -Type Audio
-        # Retrieves all audio streams from 'example.mp4'.
+        # Retrieves all audio streams from 'example.mp4' as MediaStreamInfo objects.
 
     .EXAMPLE
         Get-MediaStreams 'example.mp4' -Type Video
-        # Retrieves all video streams from 'example.mp4'.
+        # Retrieves all video streams from 'example.mp4' as MediaStreamInfo objects.
 
     .EXAMPLE
         Get-MediaStreams 'example.mp4' -Type Subtitle
-        # Retrieves all subtitle streams from 'example.mp4'.
+        # Retrieves all subtitle streams from 'example.mp4' as MediaStreamInfo objects.
 
     .EXAMPLE
         Get-MediaStreams 'example.mp4'
-        # Retrieves all streams from 'example.mp4'.
+        # Retrieves all streams from 'example.mp4' as MediaStreamInfo objects.
+
+    .EXAMPLE
+        $audioStreams = Get-MediaStreams 'video.mp4' -Type Audio
+        foreach ($stream in $audioStreams) {
+            Write-Host "Audio stream $($stream.TypeIndex): $($stream.GetDisplayName())"
+        }
 
     .OUTPUTS
-        object[] Array of stream objects like below:
-            [PSCustomObject]@{
-                SourceFile        = path to the file
-                Index       = [int]$stream.index
-                CodecType   = [string]$stream.codec_type
-                CodecName   = [string]$stream.codec_name
-                TypeIndex   = [int]$typeIndex
-                Language    = [string]$stream.tags.language
-                Title       = [string]$stream.tags.title    
-                Disposition = $stream.disposition
-                Tags        = $stream.tags
-            }
+        [MediaStreamInfo[]]
+        Returns an array of MediaStreamInfo objects with properties:
+        - SourceFile: Path to the source file
+        - Index: Zero-based stream index in the file
+        - CodecType: Stream type (audio, video, subtitle, data)
+        - CodecName: Codec name
+        - TypeIndex: Zero-based index within the stream type
+        - Language: Language code (if available)
+        - Title: Stream title (if available)
+        - Disposition: Disposition flags
+        - Tags: Additional metadata tags
 
     .NOTES
         Requires ffmpeg/ffprobe to be installed and available in the system PATH.
+        Each MediaStreamInfo object includes methods like IsAudio(), IsVideo(), IsSubtitle(), and GetDisplayName().
     #>
     [CmdletBinding()]
-    [OutputType([object[]])]
+    [OutputType([MediaStreamInfo[]])]
     param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline)]
         [string]$Path,
@@ -127,7 +133,9 @@ function Get-MediaStreams {
                         Tags        = $stream.tags
                     }
 
-                    $filteredStreams += $streamObj
+                    # Create MediaStreamInfo object
+                    $mediaStream = [MediaStreamInfo]::new($resolvedPath, $stream, $typeIndex)
+                    $filteredStreams += $mediaStream
                     $typeIndex++
                 }
             }

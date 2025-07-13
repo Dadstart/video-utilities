@@ -94,9 +94,9 @@ function Export-MediaStreams {
         # Get all streams of the specified type from the input file
         Get-MediaStreams -Path $inputPath.Path -Type $Type | ForEach-Object {
             # Generate file extension based on stream index and codec name
-            # Note: Using Index - 1 because Get-MediaStreams returns 1-based indices
-            # but Export-MediaStream expects 0-based indices
-            $extension = ".$($_.Index - 1).$($_.CodecName)"
+            # Note: Using Index directly because MediaStream objects use 0-based indices
+            # which is what Export-MediaStream expects
+            $extension = ".$($_.Index).$($_.CodecName)"
             Write-Verbose "Extension: $extension"
             
             # Build the output path by combining output directory, original filename, and extension
@@ -111,8 +111,8 @@ function Export-MediaStreams {
             }
 
             # Extract the current stream using Export-MediaStream
-            Write-Host "Exporting $Type stream #$($_.Index - 1) to $outputPath"
-            Export-MediaStream -InputPath ($inputPath.Path) -OutputPath $outputPath -Type $Type -Index ($_.Index - 1)
+            Write-Host "Exporting $Type stream #$($_.Index) to $outputPath"
+            Export-MediaStream -InputPath ($inputPath.Path) -OutputPath $outputPath -Type $Type -Index $_.Index
         }
     }
 }
