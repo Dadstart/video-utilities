@@ -4,7 +4,7 @@ function Invoke-Process {
         Invokes a process with the specified arguments.
 
     .DESCRIPTION
-        This function invokes a process with the specified arguments and returns the output.
+        This function invokes a process with the specified arguments and returns a ProcessResult object.
         It provides better error handling and output capture than the standard Start-Process.
 
     .PARAMETER Name
@@ -14,27 +14,31 @@ function Invoke-Process {
         The arguments to pass to the process.
 
     .RETURNVALUE
-        [PSCustomObject]@{
+        [ProcessResult]@{
             Output   = [string] (Standard Output)
             Error    = [string] (Standard Error)
             ExitCode = [int] (Exit Code)
         }
 
     .EXAMPLE
-        Invoke-Process 'ffprobe' @('-version')
-
-        Invokes ffprobe with the -version argument and returns the output.
+        $result = Invoke-Process 'ffprobe' @('-version')
+        if ($result.IsSuccess()) {
+            Write-Host "Process succeeded: $($result.Output)"
+        } else {
+            Write-Error "Process failed: $($result.Error)"
+        }
 
     .OUTPUTS
-        [string]
-        Returns the output of the process.
+        [ProcessResult]
+        Returns a ProcessResult object containing the output, error, and exit code.
 
     .NOTES
         This is an internal helper function used by other module functions.
         It provides better error handling and output capture than standard PowerShell process invocation.
+        The returned ProcessResult object includes methods like IsSuccess() and IsFailure() for easy status checking.
     #>
     [CmdletBinding()]
-    [OutputType([string])]
+    [OutputType([ProcessResult])]
     param(
         [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
@@ -97,12 +101,8 @@ function Invoke-Process {
         $proc.Dispose()
         Write-Verbose 'Invoke-Process: Process Disposed'
 
-        $result = [PSCustomObject]@{
-            Output   = $stdout
-            Error    = $stderr
-            ExitCode = $exitCode
-        }
-
+        # Create and return ProcessResult object
+        $result = [ProcessResult]::new($stdout, $stderr, $exitCode)
         return $result
     }
     catch {

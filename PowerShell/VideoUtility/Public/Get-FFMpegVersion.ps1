@@ -23,13 +23,21 @@ function Get-FFMpegVersion {
     [OutputType([string])]
     param()
 
-    Test-FFMpegInstalled -Throw | Out-Null
-
-    $processResult = Invoke-FFProbe '-show_program_version'
-    if ($processResult.ExitCode) {
-        Write-Error "Get-FFMpegVersion: Failed to get ffmpeg version. Exit code: $($processResult.ExitCode)"
-        return $null
+    begin {
+        foreach ($function in @('Test-FFMpegInstalled', 'Invoke-FFProbe', 'Invoke-Process')) {
+            $PSDefaultParameterValues["$function`:Verbose"] = $VerbosePreference
+            $PSDefaultParameterValues["$function`:Debug"] = $DebugPreference
+        }
     }
+    process {
+        Test-FFMpegInstalled -Throw | Out-Null
 
-    return $processResult.Json.program_version.version
+        $processResult = Invoke-FFProbe '-show_program_version'
+        if ($processResult.ExitCode) {
+            Write-Error "Get-FFMpegVersion: Failed to get ffmpeg version. Exit code: $($processResult.ExitCode)"
+            return $null
+        }
+
+        return $processResult.Json.program_version.version
+    }
 }

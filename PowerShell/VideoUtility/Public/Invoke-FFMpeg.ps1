@@ -2,36 +2,40 @@ function Invoke-FFMpeg {
     [CmdletBinding()]
     <#
     .SYNOPSIS
-        Executes ffmpeg with the specified arguments and returns the output.
+        Executes ffmpeg with the specified arguments and returns a ProcessResult object.
 
     .DESCRIPTION
-        This function runs ffmpeg with the specified arguments and returns the raw output
-        from the command execution.
+        This function runs ffmpeg with the specified arguments and returns a ProcessResult object
+        containing the output, error, and exit code from the command execution.
 
     .PARAMETER Arguments
         Arguments to pass to ffmpeg.
 
     .RETURNVALUE
-        [PSCustomObject]@{
+        [ProcessResult]@{
             Output   = [string] (Standard Output)
             Error    = [string] (Standard Error)
             ExitCode = [int] (Exit Code)
         }
 
     .EXAMPLE
-        Invoke-FFMpeg '-version'
-
-        Returns the raw output from ffmpeg version command.
+        $result = Invoke-FFMpeg @('-version')
+        if ($result.IsSuccess()) {
+            Write-Host "FFMpeg version info: $($result.Output)"
+        } else {
+            Write-Error "FFMpeg failed: $($result.Error)"
+        }
 
     .OUTPUTS
-        [string]
-        Returns the raw output from the ffmpeg command execution.
+        [ProcessResult]
+        Returns a ProcessResult object containing the output, error, and exit code.
 
     .NOTES
         This function requires ffmpeg to be installed and available in the system PATH.
+        The returned ProcessResult object includes methods like IsSuccess() and IsFailure() for easy status checking.
     #>
     [CmdletBinding()]
-    [OutputType([string])]
+    [OutputType([ProcessResult])]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [string[]]$Arguments

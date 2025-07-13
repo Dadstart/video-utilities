@@ -26,10 +26,25 @@ if (Test-Path $privatePath) {
     }
 }
 
-# Load all public functions
+# Load classes first in the correct order (base class before derived class)
 $publicPath = Join-Path $scriptPath 'Public'
 if (Test-Path $publicPath) {
-    Get-ChildItem -Path $publicPath -Filter '*.ps1' | ForEach-Object {
+    # Load ProcessResult class first
+    $processResultPath = Join-Path $publicPath 'ProcessResult.ps1'
+    if (Test-Path $processResultPath) {
+        . $processResultPath
+    }
+    
+    # Load FFProbeResult class second
+    $ffProbeResultPath = Join-Path $publicPath 'FFProbeResult.ps1'
+    if (Test-Path $ffProbeResultPath) {
+        . $ffProbeResultPath
+    }
+    
+    # Load all other public functions (excluding the class files)
+    Get-ChildItem -Path $publicPath -Filter '*.ps1' | Where-Object { 
+        $_.Name -notin @('ProcessResult.ps1', 'FFProbeResult.ps1') 
+    } | ForEach-Object {
         . $_.FullName
     }
 }
