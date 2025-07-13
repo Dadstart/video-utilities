@@ -40,7 +40,7 @@ function Get-MediaStreams {
     .OUTPUTS
         object[] Array of stream objects like below:
             [PSCustomObject]@{
-                File        = path to the file
+                SourceFile        = path to the file
                 Index       = [int]$stream.index
                 CodecType   = [string]$stream.codec_type
                 CodecName   = [string]$stream.codec_name
@@ -116,7 +116,7 @@ function Get-MediaStreams {
 
                     # Create stream object with required properties
                     $streamObj = [PSCustomObject]@{
-                        File        = $resolvedPath
+                        SourceFile  = $resolvedPath
                         Index       = [int]$stream.index
                         CodecType   = [string]$stream.codec_type
                         CodecName   = [string]$stream.codec_name

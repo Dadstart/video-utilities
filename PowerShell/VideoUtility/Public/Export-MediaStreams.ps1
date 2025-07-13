@@ -80,7 +80,9 @@ function Export-MediaStreams {
         [Parameter()]
         [switch]$Force
     )
-
+    begin {
+        Set-PreferenceInheritance -Functions 'Export-MediaStream', 'Get-MediaStreams'
+    }
     process {
         # Resolve the input file path to absolute path
         $inputPath = Resolve-Path $InputFile

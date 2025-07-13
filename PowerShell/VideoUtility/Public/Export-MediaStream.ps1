@@ -96,6 +96,11 @@ function Export-MediaStream {
     )
 
     process {
+        foreach ($function in @('Get-MediaStreams', 'Invoke-FFMpeg')) {
+            $PSDefaultParameterValues["$function`:Verbose"] = $VerbosePreference
+            $PSDefaultParameterValues["$function`:Debug"] = $DebugPreference
+        }
+
         Write-Verbose "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
 
         # Resolve and validate input path
@@ -113,8 +118,10 @@ function Export-MediaStream {
         }
         Write-Verbose "Output path resolved: $OutputPath"
 
-        # Create output directory if it doesn't exist        
+        # Create output directory if it doesn't exist
+        Write-Host "OutputPath: $OutputPath" -ForegroundColor Yellow
         $outputDir = Split-Path $OutputPath -Parent
+        Write-Host "outputDir: $outputDir" -ForegroundColor Yellow
         if ($outputDir -and -not (Test-Path $outputDir)) {
             Write-Verbose "Creating output directory: $outputDir"
             if ($PSCmdlet.ShouldProcess($outputDir, 'Create directory')) {
