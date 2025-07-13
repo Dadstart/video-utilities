@@ -1,17 +1,17 @@
 function Invoke-FFProbe {
     <#
     .SYNOPSIS
-        Retrieves an object converted from the JSON output from ffprobe.
+        Retrieves an FFProbeResult object from the JSON output of ffprobe.
 
     .DESCRIPTION
-        This function runs ffprobe on the specified media file and returns the object
-        parsed from the JSON format.
+        This function runs ffprobe on the specified media file and returns an FFProbeResult object
+        that contains both the raw process result and the parsed JSON data.
 
     .PARAMETER Arguments
         Arguments to pass to ffprobe.
 
     .RETURNVALUE
-        [PSCustomObject]@{
+        [FFProbeResult]@{
             Json     = [PSCustomObject] (JSON Output)
             Output   = [string] (Standard Output)
             Error    = [string] (Standard Error)
@@ -19,33 +19,31 @@ function Invoke-FFProbe {
         }
 
     .EXAMPLE
-        Invoke-FFProbe '-show_program_version'
+        $result = Invoke-FFProbe @('-show_program_version')
+        if ($result.IsSuccess()) {
+            Write-Host "FFProbe version: $($result.Json.program_version.version)"
+        } else {
+            Write-Error "FFProbe failed: $($result.Error)"
+        }
 
-        Returns an object like:
-        [PSCustomObject]@{
-            Json     = [PSCustomObject]@{
-                program_version = @{
-                    version = '7.1.1-full_build-www.gyan.dev'
-                    copyright = 'Copyright (c) 2007-2025 the FFmpeg developers'
-                    ...
-                }
-            }
-            Output   = [string] (Standard Output)
-            Error    = [string] (Standard Error)
-            ExitCode = [int] (Exit Code)
+    .EXAMPLE
+        $result = Invoke-FFProbe @('-show_streams', '-i', 'video.mp4')
+        if ($result.IsSuccess()) {
+            $streams = $result.Json.streams
+            Write-Host "Found $($streams.Count) streams in video.mp4"
         }
 
     .OUTPUTS
-            Json     = [PSCustomObject] (JSON Output)
-            Output   = [string] (Standard Output)
-            Error    = [string] (Standard Error)
-            ExitCode = [int] (Exit Code)
+        [FFProbeResult]
+        Returns an FFProbeResult object containing the parsed JSON data and process result.
 
     .NOTES
         This function requires ffmpeg to be installed and available in the system PATH.
+        The returned FFProbeResult object extends ProcessResult and includes methods like IsSuccess() and IsFailure().
+        If the process fails, the Json property will be null.
     #>
     [CmdletBinding()]
-    [OutputType([System.Management.Automation.PSCustomObject])]
+    [OutputType([FFProbeResult])]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [string[]]$Arguments
@@ -68,24 +66,24 @@ function Invoke-FFProbe {
         Write-Debug "Invoke-FFProbe: Process exit code: $($processResult.ExitCode)"
         Write-Debug "Invoke-FFProbe: Output length: $($processResult.Output.Length)"
         Write-Debug "Invoke-FFProbe: Error length: $($processResult.Error.Length)"
+        
         if ($processResult.ExitCode -ne 0) {
             Write-Error "Invoke-FFProbe: Failed to execute ffprobe. Exit code: $($processResult.ExitCode)"
-            $result = [PSCustomObject]@{
-                Json     = $null
-                Output   = $processResult.Output
-                Error    = $processResult.Error
-                ExitCode = $processResult.ExitCode
-            }
-            return $result
+            # Return FFProbeResult with null Json when process fails
+            return [FFProbeResult]::new($processResult.Output, $processResult.Error, $processResult.ExitCode, $null)
         }
 
-        $json = $processResult.Output | ConvertFrom-Json
-        $result = [PSCustomObject]@{
-            Json     = $json
-            Output   = $processResult.Output
-            Error    = $processResult.Error
-            ExitCode = $processResult.ExitCode
+        # Parse JSON output
+        try {
+            $json = $processResult.Output | ConvertFrom-Json
+            return [FFProbeResult]::new($processResult.Output, $processResult.Error, $processResult.ExitCode, $json)
         }
+        catch {
+            Write-Error "Invoke-FFProbe: Failed to parse JSON output: $($_.Exception.Message)"
+            # Return FFProbeResult with null Json when JSON parsing fails
+            return [FFProbeResult]::new($processResult.Output, $processResult.Error, $processResult.ExitCode, $null)
+        }
+        
         return $result
     }
 }
