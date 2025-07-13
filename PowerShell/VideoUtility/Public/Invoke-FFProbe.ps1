@@ -52,9 +52,10 @@ function Invoke-FFProbe {
     )
 
     begin {
-        # Pass through verbose/debug preferences to called functions
-        $PSDefaultParameterValues['Invoke-Process:Verbose'] = $VerbosePreference
-        $PSDefaultParameterValues['Invoke-Process:Debug'] = $DebugPreference
+        foreach ($function in @('Invoke-Process')) {
+            $PSDefaultParameterValues["$function`:Verbose"] = $VerbosePreference
+            $PSDefaultParameterValues["$function`:Debug"] = $DebugPreference
+        }
     }
     process {
         # Check if ffprobe is installed

@@ -54,5 +54,5 @@ function Add-PlexFolder {
             Write-Verbose "Created folder: $path"
         }
     }
-    Write-Information 'Plex folders created'
+    Write-Verbose 'Plex folders created'
 }
