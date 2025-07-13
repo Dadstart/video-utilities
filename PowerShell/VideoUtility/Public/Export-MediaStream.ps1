@@ -101,100 +101,12 @@ function Export-MediaStream {
             $PSDefaultParameterValues["$function`:Debug"] = $DebugPreference
         }
 
-        Write-Verbose "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
-
-        # Resolve and validate input path
-        $InputPath = Resolve-Path $InputPath
-
-        # Resolve output path relative to current working directory
-        if ([System.IO.Path]::IsPathRooted($OutputPath)) {
-            # Absolute path - use as is
-            $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
+        $stream = Get-MediaStream -Name $InputPath -Index $Index -Type $Type
+        if ($stream) {
+            $stream.Export($OutputPath, $Force)
         }
         else {
-            # Relative path - resolve relative to current working directory
-            $OutputPath = Join-Path (Get-Location) $OutputPath
-            $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
-        }
-        Write-Verbose "Output path resolved: $OutputPath"
-
-        # Create output directory if it doesn't exist
-        Write-Verbose "OutputPath: $OutputPath"
-        $outputDir = Split-Path $OutputPath -Parent
-        Write-Verbose "outputDir: $outputDir"
-        if ($outputDir -and -not (Test-Path $outputDir)) {
-            Write-Verbose "Creating output directory: $outputDir"
-            if ($PSCmdlet.ShouldProcess($outputDir, 'Create directory')) {
-                New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
-            }
-        }
-
-        # Check if output file exists and handle Force parameter
-        if (Test-Path $OutputPath) {
-            if (-not $Force) {
-                Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite."
-                return
-            }
-            else {
-                Write-Verbose "Overwriting existing file: $OutputPath"
-            }
-        }
-
-
-        # Build ffmpeg arguments
-        # Should result in call to ffmpeg with argments: -i input.mkv -y -map 0:s:0 -c copy output.sup
-
-        if ($Type -eq 'None') {
-            $mapValue = "0:$Index"
-        }
-        else {
-            # Stream type mapping
-            $streamFilter = switch ($Type) {
-                'Audio' { 'a' }
-                'Video' { 'v' }
-                'Subtitle' { 's' }
-                'Data' { 'd' }
-                default { Write-Error "Unsupported stream type: $Type" -ErrorAction Stop }
-            }
-            $mapValue = "0:$($streamFilter):$Index"
-        }
-
-        $quotedInputPath = '"' + $InputPath + '"'
-        $quotedOutputPath = '"' + $OutputPath + '"'
-        $ffmpegArgs = @(
-            '-i', $quotedInputPath,
-            '-y', # Overwrite output files
-            '-map', $mapValue,
-            '-c', 'copy',
-            $quotedOutputPath
-        )
-
-        Write-Verbose "FFmpeg command: ffmpeg $($ffmpegArgs -join ' ')"
-
-        $operation = "Extract $Type stream at index $Index from '$InputPath' to '$OutputPath'"
-
-        if ($WhatIfPreference) {
-            Write-Output "What if: $operation"
-            Write-Output "Command: ffmpeg $($ffmpegArgs -join ' ')"
-            return
-        }
-
-        $progressActivity = "Exporting $Type Stream $Index from $InputPath"
-        if ($PSCmdlet.ShouldProcess($OutputPath, $operation)) {
-            try {
-                Write-Progress -Activity $progressActivity -Status "Processing $InputPath" -PercentComplete 0
-
-                Write-Verbose "Executing: ffmpeg $($ffmpegArgs -join ' ')"
-
-                Invoke-FFMpeg $ffmpegArgs
-
-                Write-Progress -Activity $progressActivity -Status 'Complete' -PercentComplete 100
-                Write-Verbose "Successfully exported stream to: $OutputPath"
-            }
-            catch {
-                Write-Progress -Activity $progressActivity -Completed
-                Write-Error "Failed to extract stream: $($_.Exception.Message)" -ErrorAction Stop
-            }
+            Write-Error "Stream not found at index $Index for type $Type in file $InputPath"
         }
 
         return

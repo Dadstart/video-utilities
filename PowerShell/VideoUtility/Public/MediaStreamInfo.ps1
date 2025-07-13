@@ -119,6 +119,90 @@ class MediaStreamInfo {
         return "$typeName Stream $($this.TypeIndex)$languageName$titleName"
     }
 
+    [void]Export([string]$OutputPath, [switch]$Force) {
+        Write-Verbose "Extract $($this.CodecType) stream at index $($this.TypeIndex) from '$($this.SourceFile)' to '$OutputPath'"
+
+        # Resolve output path relative to current working directory
+        if ([System.IO.Path]::IsPathRooted($OutputPath)) {
+            # Absolute path - use as is
+            $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
+        }
+        else {
+            # Relative path - resolve relative to current working directory
+            $OutputPath = Join-Path (Get-Location) $OutputPath
+            $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
+        }
+        Write-Verbose "Output path resolved: $OutputPath"
+
+        # Create output directory if it doesn't exist
+        $outputDir = Split-Path $OutputPath -Parent
+        Write-Verbose "outputDir: $outputDir"
+        if ($outputDir -and -not (Test-Path $outputDir)) {
+            Write-Verbose "Creating output directory: $outputDir"
+            if ($PSCmdlet.ShouldProcess($outputDir, 'Create directory')) {
+                New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+            }
+        }
+
+        # Check if output file exists and handle Force parameter
+        if (Test-Path $OutputPath) {
+            if (-not $Force) {
+                Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite."
+                return
+            }
+            else {
+                Write-Verbose "Overwriting existing file: $OutputPath"
+            }
+        }
+
+
+        # Build ffmpeg arguments
+        # Should result in call to ffmpeg with argments: -i input.mkv -y -map 0:s:0 -c copy output.sup
+
+        if ($this.CodecType -eq 'None') {
+            $mapValue = "0:$($this.Index)"
+        }
+        else {
+            # Stream type mapping
+            $streamFilter = switch ($this.CodecType) {
+                'Audio' { 'a' }
+                'Video' { 'v' }
+                'Subtitle' { 's' }
+                'Data' { 'd' }
+                default { Write-Error "Unsupported stream type: $($this.CodecType)" -ErrorAction Stop }
+            }
+            $mapValue = "0:$($streamFilter):$($this.TypeIndex)"
+        }
+
+        $quotedInputPath = '"' + $this.SourceFile + '"'
+        $quotedOutputPath = '"' + $OutputPath + '"'
+        $ffmpegArgs = @(
+            '-i', $quotedInputPath,
+            '-y', # Overwrite output files
+            '-map', $mapValue,
+            '-c', 'copy',
+            $quotedOutputPath
+        )
+
+        Write-Verbose "FFmpeg command: ffmpeg $($ffmpegArgs -join ' ')"
+
+        $progressActivity = "Exporting $($this.CodecType) Stream $($this.TypeIndex) from $($this.SourceFile)"
+        try {
+            Write-Progress -Activity $progressActivity -Status "Processing $($this.SourceFile)" -PercentComplete 0
+
+            Write-Verbose "Executing: ffmpeg $($ffmpegArgs -join ' ')"
+
+            Invoke-FFMpeg $ffmpegArgs
+
+            Write-Progress -Activity $progressActivity -Status 'Complete' -PercentComplete 100
+            Write-Verbose "Successfully exported stream to: $OutputPath"
+        }
+        catch {
+            Write-Progress -Activity $progressActivity -Completed
+            Write-Error "Failed to extract stream: $($_.Exception.Message)" -ErrorAction Stop
+        }
+    }
+
     # Override ToString method for better debugging
     [string]ToString() {
         return "MediaStreamInfo{Index=$($this.Index), Type=$($this.CodecType), Codec=$($this.CodecName), TypeIndex=$($this.TypeIndex)}"
