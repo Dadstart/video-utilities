@@ -52,6 +52,7 @@ Export-ModuleMember -Function @(
     'Export-MediaStreams',
     'Export-MediaStreamCollection',
     'Get-FFMpegVersion',
+    'Get-MediaExtension',
     'Get-MediaStream',
     'Get-MediaStreams',
     'Get-MediaStreamCollection',

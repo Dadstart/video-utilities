@@ -70,8 +70,8 @@ class MediaStreamInfo {
         $this.CodecType = [string]$StreamData.codec_type
         $this.CodecName = [string]$StreamData.codec_name
         $this.TypeIndex = $TypeIndex
-        $this.Language = ""
-        $this.Title = ""
+        $this.Language = ''
+        $this.Title = ''
         if ($StreamData.tags.language) { $this.Language = [string]$StreamData.tags.language }
         if ($StreamData.tags.title) { $this.Title = [string]$StreamData.tags.title }
         $this.Disposition = $StreamData.disposition
@@ -114,9 +114,56 @@ class MediaStreamInfo {
     # Method to get a descriptive name for the stream
     [string]GetDisplayName() {
         $typeName = $this.CodecType.ToUpperInvariant()
-        $languageName = if ($this.Language) { " ($($this.Language))" } else { "" }
-        $titleName = if ($this.Title) { " - $($this.Title)" } else { "" }
+        $languageName = if ($this.Language) { " ($($this.Language))" } else { '' }
+        $titleName = if ($this.Title) { " - $($this.Title)" } else { '' }
         return "$typeName Stream $($this.TypeIndex)$languageName$titleName"
+    }
+
+    [string[]]GetFFMpegOutputArgs([string]$OutputPath) {
+        # ffmpeg -i input.mp4
+        # -map 0:a -c copy -f segment -segment_list stream_list.txt -segment_format mp3 audio_%03d.mp3
+        # ffmpeg -i input.mp4
+        #   -map 0:a:0 -c copy audio_eng.aac
+        #   -map 0:a:1 -c copy audio_jpn.aac
+        # Stream type mapping
+        if ($this.CodecType -eq 'None') {
+            $mapValue = "0:$($this.Index)"
+        }
+        else {
+            $streamFilter = switch ($this.CodecType) {
+                'audio' { 'a' }
+                'video' { 'v' }
+                'subtitle' { 's' }
+                'data' { 'd' }
+                default { Write-Error "Unsupported stream type: $($this.CodecType)" -ErrorAction Stop }
+            }
+            $mapValue = "0:$($streamFilter):$($this.TypeIndex)"
+        }
+            
+
+        $quotedOutputPath = '"' + $OutputPath + '"'
+        $ffmpegArgs = @(
+            '-map', $mapValue,
+            '-c', 'copy',
+            $quotedOutputPath
+        )
+
+        return $ffmpegArgs
+    }
+
+    # Method to build ffmpeg arguments for stream extraction
+    [string[]]GetFFMpegFullArgs([string]$OutputPath) {
+        # Build ffmpeg arguments
+        # Should result in call to ffmpeg with arguments: -i input.mkv -y -map 0:s:0 -c copy output.sup
+
+        $quotedInputPath = '"' + $this.SourceFile + '"'
+        $ffmpegArgs = @(
+            '-i', $quotedInputPath,
+            '-y' # Overwrite output files
+        )
+
+        $ffmpegArgs += $this.GetFFMpegOutputArgs($OutputPath)
+        return $ffmpegArgs
     }
 
     [void]Export([string]$OutputPath, [switch]$Force) {
@@ -156,33 +203,8 @@ class MediaStreamInfo {
         }
 
 
-        # Build ffmpeg arguments
-        # Should result in call to ffmpeg with argments: -i input.mkv -y -map 0:s:0 -c copy output.sup
-
-        if ($this.CodecType -eq 'None') {
-            $mapValue = "0:$($this.Index)"
-        }
-        else {
-            # Stream type mapping
-            $streamFilter = switch ($this.CodecType) {
-                'Audio' { 'a' }
-                'Video' { 'v' }
-                'Subtitle' { 's' }
-                'Data' { 'd' }
-                default { Write-Error "Unsupported stream type: $($this.CodecType)" -ErrorAction Stop }
-            }
-            $mapValue = "0:$($streamFilter):$($this.TypeIndex)"
-        }
-
-        $quotedInputPath = '"' + $this.SourceFile + '"'
-        $quotedOutputPath = '"' + $OutputPath + '"'
-        $ffmpegArgs = @(
-            '-i', $quotedInputPath,
-            '-y', # Overwrite output files
-            '-map', $mapValue,
-            '-c', 'copy',
-            $quotedOutputPath
-        )
+        # Build ffmpeg arguments using the extracted method
+        $ffmpegArgs = $this.GetFFMpegArgs($OutputPath)
 
         Write-Verbose "FFmpeg command: ffmpeg $($ffmpegArgs -join ' ')"
 
