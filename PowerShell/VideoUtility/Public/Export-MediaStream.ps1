@@ -119,9 +119,9 @@ function Export-MediaStream {
         Write-Verbose "Output path resolved: $OutputPath"
 
         # Create output directory if it doesn't exist
-        Write-Host "OutputPath: $OutputPath" -ForegroundColor Yellow
+        Write-Verbose "OutputPath: $OutputPath"
         $outputDir = Split-Path $OutputPath -Parent
-        Write-Host "outputDir: $outputDir" -ForegroundColor Yellow
+        Write-Verbose "outputDir: $outputDir"
         if ($outputDir -and -not (Test-Path $outputDir)) {
             Write-Verbose "Creating output directory: $outputDir"
             if ($PSCmdlet.ShouldProcess($outputDir, 'Create directory')) {
@@ -196,5 +196,7 @@ function Export-MediaStream {
                 Write-Error "Failed to extract stream: $($_.Exception.Message)" -ErrorAction Stop
             }
         }
+
+        return
     }
 }
