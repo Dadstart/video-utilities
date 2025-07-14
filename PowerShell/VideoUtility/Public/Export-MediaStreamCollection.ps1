@@ -71,7 +71,7 @@ function Export-MediaStreamCollection {
         [Parameter(Mandatory)]
         [string]$OutputDirectory,
         [Parameter()]
-        [ValidateSet('Audio','Subtitle','Video','Data','All')]
+        [ValidateSet('Audio','Subtitle','Video','Data')]
         [string]$Type,
         [Parameter()]
         [string]$Language,
@@ -87,7 +87,7 @@ function Export-MediaStreamCollection {
     
     process {
         # Convert Type parameter to lowercase for the class method
-        $typeFilter = if ($Type -and $Type -ne 'All') { $Type.ToLowerInvariant() } else { $null }
+        $typeFilter = $Type?.ToLowerInvariant()
         
         # Use the collection's ExportAllStreams method
         $Collection.ExportAllStreams($OutputDirectory, $Language, $typeFilter, $Force)
