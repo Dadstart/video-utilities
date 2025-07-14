@@ -25,7 +25,8 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Force
+    [switch]$Force,
+    [switch]$Quiet
 )
 
 #Requires -Version 7.0
@@ -45,9 +46,10 @@ $isAlreadyLoaded = Get-Module -Name VideoUtility
 
 if ($isAlreadyLoaded -and -not $Force) {
     Write-Verbose 'VideoUtility module is already loaded'
-    Write-Verbose 'Use -Force parameter to reload the module'
-    
-    Write-Host 'VideoUtility module is already available!' -ForegroundColor Green
+    Write-Verbose 'Use -Force parameter to reload the module'    
+    if (-not $Quiet) {
+        Write-Host 'VideoUtility module is already available!' -ForegroundColor Green
+    }
     Write-Verbose "Module location: $moduleRoot"
     
     return
@@ -58,7 +60,9 @@ try {
     Write-Verbose 'Importing VideoUtility module'
     $modulePath = Join-Path $moduleRoot 'VideoUtility'
     Import-Module $modulePath -Force:$Force
-    Write-Host 'VideoUtility module installed successfully!' -ForegroundColor Green
+    if (-not $Quiet) {
+        Write-Host 'VideoUtility module installed successfully!' -ForegroundColor Green
+    }
     Write-Verbose "Module location: $moduleRoot"
 }
 catch {

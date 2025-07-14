@@ -17,12 +17,15 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Force
+    [switch]$Force,
+    [switch]$Quiet
 )
 
 #Requires -Version 7.0
 
-Write-Host 'Performing quick installation of VideoUtility module...' -ForegroundColor Yellow
+if (-not $Quiet) {
+    Write-Host 'Performing quick installation of VideoUtility module...' -ForegroundColor Yellow
+}
 
 # Get the script directory
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -31,7 +34,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $uninstallScript = Join-Path $scriptDir 'Uninstall.ps1'
 if (Test-Path $uninstallScript) {
     Write-Verbose 'Running uninstall script to clean up existing installation'
-    & $uninstallScript -Force:$Force
+    & $uninstallScript -Force:$Force -Quiet:$Quiet
 }
 else {
     Write-Error "Uninstall script not found: $uninstallScript"
@@ -42,11 +45,13 @@ else {
 $installScript = Join-Path $scriptDir 'Install.ps1'
 if (Test-Path $installScript) {
     Write-Verbose 'Running install script'
-    & $installScript -Force:$Force
+    & $installScript -Force:$Force -Quiet:$Quiet
 }
 else {
     Write-Error "Install script not found: $installScript"
     throw 'Install script not found'
 }
 
-Write-Host 'Quick installation completed!' -ForegroundColor Green 
+if (-not $Quiet) {
+    Write-Host 'Quick installation completed!' -ForegroundColor Green 
+}
