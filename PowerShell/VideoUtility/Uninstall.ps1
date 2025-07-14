@@ -16,7 +16,8 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Force
+    [switch]$Force,
+    [switch]$Quiet
 )
 
 #Requires -Version 7.0
@@ -25,8 +26,12 @@ param(
 if (Get-Module -Name VideoUtility -ErrorAction SilentlyContinue) {
     Write-Verbose 'Removing loaded VideoUtility module'
     Remove-Module -Name VideoUtility -Force:$Force -ErrorAction SilentlyContinue
-    Write-Host 'VideoUtility module uninstalled successfully!' -ForegroundColor Green
+    if (-not $Quiet) {
+        Write-Host 'VideoUtility module uninstalled successfully!' -ForegroundColor Green
+    }
 }
 else {
-    Write-Warning 'VideoUtility module is not currently loaded'
+    if (-not $Quiet) {
+        Write-Warning 'VideoUtility module is not currently loaded'
+    }
 } 
